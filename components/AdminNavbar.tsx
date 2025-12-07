@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { pb } from '../services/pocketbase';
-import { LayoutDashboard, Newspaper, LogOut, Waypoints } from 'lucide-react';
+import { LayoutDashboard, Newspaper, LogOut, Waypoints, Pencil } from 'lucide-react';
+import { AdminEditContext } from '../lib/AdminEditContext';
 
 const AdminNavbar: React.FC = () => {
   const navigate = useNavigate();
+  const { pageId, pageType } = useContext(AdminEditContext);
 
   const handleLogout = () => {
     pb.authStore.clear();
     navigate('/');
   };
+
+  const editUrl = pageType === 'news' ? `/admin/news/edit/${pageId}` : `/admin/subpages/edit/${pageId}`;
 
   return (
     <nav className="bg-gray-800 text-white shadow-md">
@@ -33,6 +37,12 @@ const AdminNavbar: React.FC = () => {
               <Waypoints size={18} />
               Nawigacja
             </Link>
+            {pageId && pageType && (
+              <Link to={editUrl} className="flex items-center gap-2 bg-green-600 px-3 py-2 rounded-md text-sm font-medium hover:bg-green-700">
+                <Pencil size={18} />
+                Edytuj stronę
+              </Link>
+            )}
           </div>
           <button
             onClick={handleLogout}

@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { pb } from '../services/pocketbase';
 import { Post, getImageUrl } from '../lib/types';
 import { Calendar, ArrowLeft, Share2 } from 'lucide-react';
+import { AdminEditContext } from '../lib/AdminEditContext';
 
 const NewsDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const { setPageId, setPageType } = useContext(AdminEditContext);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -22,6 +24,8 @@ const NewsDetail: React.FC = () => {
         });
         if (!controller.signal.aborted) {
           setPost(result);
+          setPageId(result.id);
+          setPageType('news');
         }
       } catch (err: any) {
         if (!err.isAbort) {
@@ -40,8 +44,10 @@ const NewsDetail: React.FC = () => {
 
     return () => {
       controller.abort();
+      setPageId(null);
+      setPageType(null);
     };
-  }, [slug]);
+  }, [slug, setPageId, setPageType]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -83,22 +89,31 @@ const NewsDetail: React.FC = () => {
   }
 
   return (
-    <article className="min-h-screen bg-white">
-      {/* Header Image */}
-      {post.cover_image && (
+    <article className="min-h-screen">
+      {/* Header */}
+      {post.cover_image ? (
         <div className="w-full h-64 md:h-96 relative overflow-hidden">
-          <img 
-            src={getImageUrl(post.collectionId, post.id, post.cover_image)} 
+          <img
+            src={getImageUrl(post.collectionId, post.id, post.cover_image)}
             alt={post.title}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           <div className="absolute bottom-0 left-0 w-full p-4 md:p-12">
             <div className="container mx-auto max-w-4xl">
-               <span className="bg-school-accent text-school-primary px-3 py-1 rounded text-xs font-bold uppercase tracking-wider mb-3 inline-block">
-                 {post.category || 'Wydarzenia'}
-               </span>
+              <span className="bg-school-accent text-school-primary px-3 py-1 rounded text-xs font-bold uppercase tracking-wider mb-3 inline-block">
+                {post.category || 'Wydarzenia'}
+              </span>
             </div>
+          </div>
+        </div>
+      ) : (
+        <div className="relative py-12">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)]"></div>
+          <div className="relative container mx-auto px-4 max-w-4xl text-center">
+            <span className="bg-school-accent text-school-primary px-3 py-1 rounded text-xs font-bold uppercase tracking-wider mb-3 inline-block">
+              {post.category || 'Wydarzenia'}
+            </span>
           </div>
         </div>
       )}

@@ -14,34 +14,37 @@ import AdminNavigation from './components/AdminNavigation';
 import SubpageDetail from './components/SubpageDetail';
 import AdminSubpages from './components/AdminSubpages';
 import AdminSubpageForm from './components/AdminSubpageForm';
+import { AdminEditProvider } from './lib/AdminEditContext';
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/aktualnosci" element={<NewsList />} />
-          <Route path="/aktualnosci/:slug" element={<NewsDetail />} />
-          <Route path="/p/:slug" element={<SubpageDetail />} />
-          <Route path="/oferta" element={<Offer />} />
-          {/* Placeholder routes for sections not yet implemented */}
-          <Route path="/rekrutacja" element={<Offer />} />
-          <Route path="/kontakt" element={<div className="container mx-auto p-20 text-center text-gray-500">Formularz kontaktowy w budowie</div>} />
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin" element={<PrivateRoute />}>
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="news" element={<AdminNews />} />
-            <Route path="news/new" element={<AdminNewsForm />} />
-            <Route path="news/edit/:id" element={<AdminNewsForm />} />
-            <Route path="subpages" element={<AdminSubpages />} />
-            <Route path="subpages/new" element={<AdminSubpageForm />} />
-            <Route path="subpages/edit/:id" element={<AdminSubpageForm />} />
-            <Route path="navigation" element={<AdminNavigation />} />
-          </Route>
-          <Route path="*" element={<div className="container mx-auto p-20 text-center">404 - Strona nie znaleziona</div>} />
-        </Routes>
-      </Layout>
+      <AdminEditProvider>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/aktualnosci" element={<NewsList />} />
+            <Route path="/aktualnosci/:slug" element={<NewsDetail />} />
+            <Route path="/p/:slug" element={<SubpageDetail />} />
+            <Route path="/oferta" element={<Offer />} />
+            {/* Placeholder routes for sections not yet implemented */}
+            <Route path="/rekrutacja" element={<Offer />} />
+            <Route path="/kontakt" element={<div className="container mx-auto p-20 text-center text-gray-500">Formularz kontaktowy w budowie</div>} />
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin" element={<PrivateRoute />}>
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="news" element={<AdminNews />} />
+              <Route path="news/new" element={<AdminNewsForm />} />
+              <Route path="news/edit/:id" element={<AdminNewsForm />} />
+              <Route path="subpages" element={<AdminSubpages />} />
+              <Route path="subpages/new" element={<AdminSubpageForm />} />
+              <Route path="subpages/edit/:id" element={<AdminSubpageForm />} />
+              <Route path="navigation" element={<AdminNavigation />} />
+            </Route>
+            <Route path="*" element={<div className="container mx-auto p-20 text-center">404 - Strona nie znaleziona</div>} />
+          </Routes>
+        </Layout>
+      </AdminEditProvider>
     </BrowserRouter>
   );
 };

@@ -147,7 +147,9 @@ const Home: React.FC = () => {
       </section>
 
       {/* News Section */}
-      <section className="container mx-auto px-4 py-12 mb-12">
+      <section className="relative">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)]"></div>
+        <div className="container mx-auto px-4 py-12 mb-12 relative">
         <div className="flex justify-between items-end mb-10">
           <div>
             <h2 className="font-serif text-3xl font-bold text-school-primary mb-2">
@@ -249,6 +251,7 @@ const Home: React.FC = () => {
           >
             Zobacz wszystkie aktualności
           </Link>
+        </div>
         </div>
       </section>
 

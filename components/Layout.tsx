@@ -27,7 +27,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-bg">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       {isAdmin && <AdminNavbar />}
       <main className="flex-grow flex flex-col">
