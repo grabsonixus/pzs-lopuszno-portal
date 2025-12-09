@@ -55,7 +55,8 @@ export function getImageUrl(
   recordId: string,
   filename: string
 ): string {
-  const baseUrl = process.env.PUBLIC_POCKETBASE_URL || "http://127.0.0.1:8090";
+  const baseUrl =
+    process.env.PUBLIC_POCKETBASE_URL || "https://api.zsp5lopuszno.pl/";
   if (!filename) return "";
   return `${baseUrl}/api/files/${collectionId}/${recordId}/${filename}`;
 }

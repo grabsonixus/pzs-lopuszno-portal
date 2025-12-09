@@ -14,7 +14,10 @@ import {
   Book,
   Globe,
   Briefcase,
+  Phone,
+  BookCheck,
 } from "lucide-react";
+import heroBg from "../assets/tlo.png";
 
 const Home: React.FC = () => {
   const [latestPosts, setLatestPosts] = useState<Post[]>([]);
@@ -67,7 +70,7 @@ const Home: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-blue-800/20 z-10"></div>
           {/* Placeholder for actual school image */}
           <img
-            src="https://zsp5lopuszno.pl/wp-content/uploads/2019/11/20190808_093222.jpg"
+            src={heroBg}
             alt="Budynek szkoły"
             className="w-full h-full object-cover absolute top-0 left-0"
           />
@@ -90,7 +93,7 @@ const Home: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                to="/oferta"
+                to="/p/oferta"
                 className="bg-school-accent text-school-primary px-8 py-4 rounded-md font-bold text-lg hover:bg-yellow-400 transition-all transform hover:-translate-y-1 shadow-lg flex items-center justify-center gap-2"
               >
                 Sprawdź Ofertę
@@ -116,22 +119,22 @@ const Home: React.FC = () => {
               link: "https://uonetplus.vulcan.net.pl/powiatkielecki",
             },
             {
-              name: "Plan Lekcji",
-              icon: Clock,
+              name: "Kontakt",
+              icon: Phone,
               color: "bg-indigo-600",
-              link: "/plan",
+              link: "/p/kontakt",
             },
             {
-              name: "Zastępstwa",
-              icon: Users,
+              name: "Oferta",
+              icon: BookCheck,
               color: "bg-blue-700",
-              link: "/zastepstwa",
+              link: "/p/oferta",
             },
             {
               name: "Internat",
               icon: BedDouble,
               color: "bg-indigo-700",
-              link: "/internat",
+              link: "/p/internat",
             },
           ].map((link, idx) => (
             <a
@@ -150,108 +153,108 @@ const Home: React.FC = () => {
       <section className="relative">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)]"></div>
         <div className="container mx-auto px-4 py-12 mb-12 relative">
-        <div className="flex justify-between items-end mb-10">
-          <div>
-            <h2 className="font-serif text-3xl font-bold text-school-primary mb-2">
-              Aktualności
-            </h2>
-            <div className="h-1 w-20 bg-school-accent rounded-full"></div>
+          <div className="flex justify-between items-end mb-10">
+            <div>
+              <h2 className="font-serif text-3xl font-bold text-school-primary mb-2">
+                Aktualności
+              </h2>
+              <div className="h-1 w-20 bg-school-accent rounded-full"></div>
+            </div>
+            <Link
+              to="/aktualnosci"
+              className="hidden md:flex items-center text-school-primary font-semibold hover:text-blue-700 transition-colors gap-1"
+            >
+              Zobacz wszystkie <ArrowRight size={16} />
+            </Link>
           </div>
-          <Link
-            to="/aktualnosci"
-            className="hidden md:flex items-center text-school-primary font-semibold hover:text-blue-700 transition-colors gap-1"
-          >
-            Zobacz wszystkie <ArrowRight size={16} />
-          </Link>
-        </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="animate-pulse bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden h-96"
-              >
-                <div className="bg-gray-200 h-48 w-full"></div>
-                <div className="p-6 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                  <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {latestPosts.length > 0 ? (
-              latestPosts.map((post) => (
-                <article
-                  key={post.id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full group"
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="animate-pulse bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden h-96"
                 >
-                  <div className="relative overflow-hidden h-48 shrink-0 bg-gray-100">
-                    {post.cover_image ? (
-                      <img
-                        src={getImageUrl(
-                          post.collectionId,
-                          post.id,
-                          post.cover_image
-                        )}
-                        alt={post.title}
-                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <BookOpen size={48} />
+                  <div className="bg-gray-200 h-48 w-full"></div>
+                  <div className="p-6 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {latestPosts.length > 0 ? (
+                latestPosts.map((post) => (
+                  <article
+                    key={post.id}
+                    className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full group"
+                  >
+                    <div className="relative overflow-hidden h-48 shrink-0 bg-gray-100">
+                      {post.cover_image ? (
+                        <img
+                          src={getImageUrl(
+                            post.collectionId,
+                            post.id,
+                            post.cover_image
+                          )}
+                          alt={post.title}
+                          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <BookOpen size={48} />
+                        </div>
+                      )}
+                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-school-primary text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                        {post.category || "Wydarzenia"}
                       </div>
-                    )}
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-school-primary text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                      {post.category || "Wydarzenia"}
                     </div>
-                  </div>
-                  <div className="p-6 flex flex-col flex-grow">
-                    <div className="flex items-center text-gray-500 text-xs mb-3 gap-2">
-                      <Calendar size={14} />
-                      {post.date
-                        ? formatDate(post.date)
-                        : formatDate(post.created)}
+                    <div className="p-6 flex flex-col flex-grow">
+                      <div className="flex items-center text-gray-500 text-xs mb-3 gap-2">
+                        <Calendar size={14} />
+                        {post.date
+                          ? formatDate(post.date)
+                          : formatDate(post.created)}
+                      </div>
+                      <h3 className="font-serif font-bold text-xl text-gray-900 mb-3 line-clamp-2 group-hover:text-school-primary transition-colors">
+                        {post.title}
+                      </h3>
+                      <div
+                        className="text-gray-600 text-sm line-clamp-3 mb-4 flex-grow prose prose-sm"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            post.excerpt ||
+                            post.content?.substring(0, 100) + "...",
+                        }}
+                      ></div>
+                      <Link
+                        to={`/aktualnosci/${post.slug}`}
+                        className="inline-flex items-center text-school-primary font-semibold text-sm hover:underline mt-auto"
+                      >
+                        Czytaj więcej <ArrowRight size={14} className="ml-1" />
+                      </Link>
                     </div>
-                    <h3 className="font-serif font-bold text-xl text-gray-900 mb-3 line-clamp-2 group-hover:text-school-primary transition-colors">
-                      {post.title}
-                    </h3>
-                    <div
-                      className="text-gray-600 text-sm line-clamp-3 mb-4 flex-grow prose prose-sm"
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          post.excerpt ||
-                          post.content?.substring(0, 100) + "...",
-                      }}
-                    ></div>
-                    <Link
-                      to={`/aktualnosci/${post.slug}`}
-                      className="inline-flex items-center text-school-primary font-semibold text-sm hover:underline mt-auto"
-                    >
-                      Czytaj więcej <ArrowRight size={14} className="ml-1" />
-                    </Link>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="col-span-3 text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
-                Brak aktualności do wyświetlenia.
-              </div>
-            )}
-          </div>
-        )}
+                  </article>
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+                  Brak aktualności do wyświetlenia.
+                </div>
+              )}
+            </div>
+          )}
 
-        <div className="mt-8 text-center md:hidden">
-          <Link
-            to="/aktualnosci"
-            className="border border-school-primary text-school-primary px-6 py-2 rounded-md font-semibold hover:bg-school-primary hover:text-white transition-colors"
-          >
-            Zobacz wszystkie aktualności
-          </Link>
-        </div>
+          <div className="mt-8 text-center md:hidden">
+            <Link
+              to="/aktualnosci"
+              className="border border-school-primary text-school-primary px-6 py-2 rounded-md font-semibold hover:bg-school-primary hover:text-white transition-colors"
+            >
+              Zobacz wszystkie aktualności
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -281,7 +284,7 @@ const Home: React.FC = () => {
                 i językowe. Rozwijaj pasje w kołach zainteresowań.
               </p>
               <Link
-                to="/oferta"
+                to="/p/oferta"
                 className="text-school-primary font-bold hover:text-blue-700 flex items-center gap-2"
               >
                 Zobacz profile <ArrowRight size={16} />
@@ -303,7 +306,7 @@ const Home: React.FC = () => {
                 przedsiębiorców i staże zagraniczne Erasmus+.
               </p>
               <Link
-                to="/oferta"
+                to="/p/oferta"
                 className="text-school-primary font-bold hover:text-blue-700 flex items-center gap-2"
               >
                 Wszystkie zawody <ArrowRight size={16} />
@@ -322,7 +325,7 @@ const Home: React.FC = () => {
                 systemie dualnym - szkoła i pracodawca.
               </p>
               <Link
-                to="/oferta"
+                to="/p/oferta"
                 className="text-school-primary font-bold hover:text-blue-700 flex items-center gap-2"
               >
                 Lista zawodów <ArrowRight size={16} />

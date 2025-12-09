@@ -12,7 +12,7 @@ import {
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
   const pocketBaseUrl =
-    process.env.PUBLIC_POCKETBASE_URL || "http://127.0.0.1:8090";
+    process.env.PUBLIC_POCKETBASE_URL || "https://api.zsp5lopuszno.pl/";
 
   return (
     <footer className="bg-school-primary text-blue-100 text-sm">
@@ -109,11 +109,6 @@ const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a href="/plan" className="hover:text-white transition-colors">
-                  Plan lekcji
-                </a>
-              </li>
-              <li>
                 <a href="#" className="hover:text-white transition-colors">
                   E-Dziennik Vulcan
                 </a>
@@ -143,7 +138,7 @@ const Footer: React.FC = () => {
               Panel zarządzania treścią dla administratorów i redaktorów strony.
             </p>
             <a
-              href={`${pocketBaseUrl}/_/`}
+              href={`admin`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm transition-colors border border-blue-700"

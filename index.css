@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Twoje style z background.css możesz przenieść tutaj lub zostawić w background.css, 
+   ale tailwind musi być załadowany */
+
+body {
+  @apply bg-neutral-bg text-gray-900 antialiased;
+}
+
+/* Style dla tabel markdown (przeniesione z index.html) */
+.prose table {
+  width: 100%;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-collapse: collapse;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.prose thead {
+  background-color: #1e3a8a;
+  color: white;
+}
+.prose th,
+.prose td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+}
+.prose tbody tr:nth-of-type(even) {
+  background-color: #f3f4f6;
+}
+.prose th {
+  font-weight: 600;
+}

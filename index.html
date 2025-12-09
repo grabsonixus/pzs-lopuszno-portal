@@ -4,76 +4,44 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Powiatowy Zespół Szkół w Łopusznie</title>
-    <meta name="description" content="Oficjalna strona Powiatowego Zespołu Szkół w Łopusznie. Informacje dla uczniów, rodziców i kandydatów.">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <meta
+      name="description"
+      content="Oficjalna strona Powiatowego Zespołu Szkół w Łopusznie. Informacje dla uczniów, rodziców i kandydatów."
+    />
 
-    <!-- Tailwind CSS (CDN approach per system requirements) -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'school-primary': '#1e3a8a', // Deep Navy Blue
-              'school-accent': '#fbbf24',  // Amber Gold
-              'neutral-bg': '#f3f4f6',     // Light Gray
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              serif: ['Merriweather', 'serif'],
-            },
-          }
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind is built via PostCSS (do not use CDN in production). -->
+
+    <style>
+      /* Custom styles for tables generated from markdown (kept here only if needed) */
+      /* These styles are also present in index.css — if you keep them in index.css, you can remove them from here. */
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "react/": "https://aistudiocdn.com/react@^19.2.1/",
+          "react": "https://aistudiocdn.com/react@^19.2.1",
+          "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+          "pocketbase": "https://aistudiocdn.com/pocketbase@^0.26.5",
+          "react-router-dom": "https://aistudiocdn.com/react-router-dom@6.22.3"
         }
       }
     </script>
-    <style>
-      /* Custom styles for tables generated from markdown */
-      .prose table {
-        width: 100%;
-        margin-top: 1.5rem;
-        margin-bottom: 1.5rem;
-        border-collapse: collapse;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        border-radius: 0.5rem;
-        overflow: hidden; /* Ensures border-radius is respected */
-      }
-      .prose thead {
-        background-color: #1e3a8a; /* school-primary */
-        color: white;
-      }
-      .prose th,
-      .prose td {
-        border: 1px solid #e5e7eb; /* gray-200 */
-        padding: 0.75rem 1rem;
-        text-align: left;
-        vertical-align: middle;
-      }
-      .prose tbody tr:nth-of-type(even) {
-        background-color: #f3f4f6; /* neutral-bg */
-      }
-      .prose th {
-        font-weight: 600; /* semibold */
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "pocketbase": "https://aistudiocdn.com/pocketbase@^0.26.5",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@6.22.3"
-  }
-}
-</script>
-</head>
+  </head>
   <body class="bg-neutral-bg font-sans text-gray-900 antialiased">
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+    <script type="module" src="/index.tsx"></script>
+  </body>
 </html>

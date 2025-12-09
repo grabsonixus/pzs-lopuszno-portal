@@ -3,7 +3,7 @@ import PocketBase from "pocketbase";
 
 // Unified URL to match the types definition and ensure connection
 const POCKETBASE_URL =
-  process.env.PUBLIC_POCKETBASE_URL || "http://127.0.0.1:8090";
+  process.env.PUBLIC_POCKETBASE_URL || "https://api.zsp5lopuszno.pl/";
 
 export const pb = new PocketBase(POCKETBASE_URL);
 

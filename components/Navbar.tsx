@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { pb } from "../services/pocketbase";
 import { NavItem } from "../types";
-
+import { AdminEditContext } from "../lib/AdminEditContext"; // Importuj AdminEditContext
+import favicon from "../assets/favicon.png";
 interface NavLink extends NavItem {
   dropdown?: NavLink[];
 }
@@ -12,6 +13,8 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
+  const { navigationItemsUpdated, setNavigationItemsUpdated } =
+    useContext(AdminEditContext);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -22,7 +25,10 @@ const Navbar: React.FC = () => {
           .getFullList<NavItem>({
             sort: "order",
             signal: controller.signal,
+            requestKey: null,
           });
+
+        console.debug("Navbar: fetched navigation records:", records);
 
         const items: Record<string, NavLink> = {};
         records.forEach((item) => {
@@ -42,11 +48,20 @@ const Navbar: React.FC = () => {
             nestedNavLinks.push(navLink);
           }
         });
+        console.debug("Navbar: nested nav links:", nestedNavLinks);
         if (!controller.signal.aborted) {
           setNavLinks(nestedNavLinks);
+          if (navigationItemsUpdated) {
+            setNavigationItemsUpdated(false); // Reset the flag after fetching
+          }
         }
       } catch (error: any) {
-        if (!error.isAbort) {
+        const isAbort =
+          error?.isAbort ||
+          error?.name === "AbortError" ||
+          /autocancelled/i.test(String(error?.message || ""));
+
+        if (!isAbort) {
           console.error("Failed to fetch navigation:", error);
         }
       }
@@ -57,7 +72,7 @@ const Navbar: React.FC = () => {
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [navigationItemsUpdated]); // Add navigationItemsUpdated to dependency array
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const toggleDropdown = (name: string) => {
@@ -71,10 +86,7 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 bg-school-primary rounded-full flex items-center justify-center text-white shrink-0 group-hover:bg-blue-800 transition-colors">
-              <img
-                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsGkwKvXY0JhNbVXZ08gvfXWPOfs-wEHRDJA&s"
-                alt="Budynek szkoły"
-              />
+              <img src={favicon} alt="Budynek szkoły" />
             </div>
             <div className="hidden md:block">
               <h1 className="font-serif font-bold text-lg text-school-primary leading-tight">
@@ -97,7 +109,7 @@ const Navbar: React.FC = () => {
               if (link.is_highlight) {
                 return (
                   <Link
-                    key={link.name}
+                    key={link.id}
                     to={link.href}
                     className="bg-school-accent text-school-primary px-6 py-2.5 rounded-md font-bold hover:bg-yellow-400 transition-colors shadow-sm ml-4 inline-block"
                   >
@@ -105,45 +117,47 @@ const Navbar: React.FC = () => {
                   </Link>
                 );
               }
+
               if (
                 link.has_dropdown &&
                 link.dropdown &&
                 link.dropdown.length > 0
               ) {
                 return (
-                  <div key={link.name} className="relative group">
+                  <div key={link.id} className="relative group">
                     <button className="flex items-center gap-1 text-gray-700 hover:text-school-primary font-medium py-2 px-4 transition-colors">
                       {link.name} <ChevronDown size={14} />
                     </button>
                     <div className="absolute top-full left-0 w-56 bg-white border border-gray-100 shadow-lg rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top pt-2 z-10">
-                      {link.dropdown.map((item) => (
-                        <React.Fragment key={item.name}>
-                          {item.is_external ? (
-                            <a
-                              href={item.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block px-4 py-3 text-sm text-gray-600 hover:bg-neutral-bg hover:text-school-primary"
-                            >
-                              {item.name}
-                            </a>
-                          ) : (
-                            <Link
-                              to={item.href}
-                              className="block px-4 py-3 text-sm text-gray-600 hover:bg-neutral-bg hover:text-school-primary"
-                            >
-                              {item.name}
-                            </Link>
-                          )}
-                        </React.Fragment>
-                      ))}
+                      {link.dropdown.map((item) =>
+                        item.is_external ? (
+                          <a
+                            key={item.id}
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block px-4 py-3 text-sm text-gray-600 hover:bg-neutral-bg hover:text-school-primary"
+                          >
+                            {item.name}
+                          </a>
+                        ) : (
+                          <Link
+                            key={item.id}
+                            to={item.href}
+                            className="block px-4 py-3 text-sm text-gray-600 hover:bg-neutral-bg hover:text-school-primary"
+                          >
+                            {item.name}
+                          </Link>
+                        )
+                      )}
                     </div>
                   </div>
                 );
               }
+
               return (
                 <Link
-                  key={link.name}
+                  key={link.id}
                   to={link.href}
                   className="text-gray-700 hover:text-school-primary font-medium py-2 px-4 transition-colors"
                 >
