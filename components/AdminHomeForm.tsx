@@ -320,7 +320,7 @@ const AdminHomeForm: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 flex justify-between">
+                  <label className="text-sm font-medium mb-1 flex justify-between">
                     <span>Przezroczystość nakładki (przyciemnienie tła)</span>
                     <span className="font-bold">
                       {settings.hero_overlay_opacity ?? 90}%
@@ -368,7 +368,7 @@ const AdminHomeForm: React.FC = () => {
                         setBgPreview(URL.createObjectURL(e.target.files[0]));
                       }
                     }}
-                    className="relative z-10 opacity-0 w-full h-full cursor-pointer absolute inset-0"
+                    className="z-10 opacity-0 w-full h-full cursor-pointer absolute inset-0"
                   />
                   <span className="relative z-10 bg-white/80 px-2 py-1 rounded text-sm pointer-events-none mt-auto">
                     Kliknij aby zmienić

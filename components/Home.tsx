@@ -162,12 +162,6 @@ const Home: React.FC = () => {
 
         <div className="container mx-auto px-4 relative z-20 pt-10">
           <div className="max-w-3xl">
-            <div className="inline-block bg-school-accent/20 border border-school-accent/40 rounded-full px-4 py-1.5 mb-6 backdrop-blur-sm">
-              <span className="text-school-accent font-semibold text-sm tracking-wide uppercase">
-                Rekrutacja 2025/2026 trwa
-              </span>
-            </div>
-
             <h1 className="font-serif text-4xl md:text-6xl font-bold mb-6 leading-tight whitespace-pre-line">
               {settings.hero_title}
             </h1>
