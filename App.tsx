@@ -16,6 +16,9 @@ const AdminNewsForm = lazy(() => import("./components/AdminNewsForm"));
 const AdminNavigation = lazy(() => import("./components/AdminNavigation"));
 const AdminSubpages = lazy(() => import("./components/AdminSubpages"));
 const AdminSubpageForm = lazy(() => import("./components/AdminSubpageForm"));
+const AdminHomeForm = lazy(() => import("./components/AdminHomeForm"));
+const AdminSettingsForm = lazy(() => import("./components/AdminSettingsForm"));
+const AdminFooterForm = lazy(() => import("./components/AdminFooterForm")); // NOWY IMPORT
 
 const App: React.FC = () => {
   return (
@@ -43,6 +46,10 @@ const App: React.FC = () => {
                   element={<AdminSubpageForm />}
                 />
                 <Route path="navigation" element={<AdminNavigation />} />
+                <Route path="home" element={<AdminHomeForm />} />
+                <Route path="settings" element={<AdminSettingsForm />} />
+                <Route path="footer" element={<AdminFooterForm />} />{" "}
+                {/* NOWA TRASA */}
               </Route>
               <Route
                 path="*"

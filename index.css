@@ -2,14 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Twoje style z background.css możesz przenieść tutaj lub zostawić w background.css, 
-   ale tailwind musi być załadowany */
+:root {
+  /* Domyślne wartości (zostaną nadpisane przez JS jeśli baza danych zwróci inne) */
+  --color-primary: #1e3a8a; /* Indigo/Blue 900 */
+  --color-accent: #facc15; /* Yellow 400 */
+  --font-header: "Merriweather", serif;
+  --font-body: "Inter", sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-body);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-header);
+  }
+}
+
+@layer components {
+  /* Nadpisujemy klasy używane w projekcie, aby korzystały ze zmiennych */
+
+  .bg-school-primary {
+    background-color: var(--color-primary) !important;
+  }
+
+  .text-school-primary {
+    color: var(--color-primary) !important;
+  }
+
+  .border-school-primary {
+    border-color: var(--color-primary) !important;
+  }
+
+  .bg-school-accent {
+    background-color: var(--color-accent) !important;
+  }
+
+  .text-school-accent {
+    color: var(--color-accent) !important;
+  }
+
+  .border-school-accent {
+    border-color: var(--color-accent) !important;
+  }
+
+  /* Klasy font-serif i font-sans w Tailwind muszą teraz odwoływać się do naszych zmiennych */
+  .font-serif {
+    font-family: var(--font-header) !important;
+  }
+
+  .font-sans {
+    font-family: var(--font-body) !important;
+  }
+}
 
 body {
   @apply bg-neutral-bg text-gray-900 antialiased;
 }
 
-/* Style dla tabel markdown (przeniesione z index.html) */
+/* Style dla tabel markdown */
 .prose table {
   width: 100%;
   margin-top: 1.5rem;
@@ -20,7 +77,7 @@ body {
   overflow: hidden;
 }
 .prose thead {
-  background-color: #1e3a8a;
+  background-color: var(--color-primary); /* Używa zmiennej */
   color: white;
 }
 .prose th,

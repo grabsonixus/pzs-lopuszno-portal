@@ -2,9 +2,11 @@ import React, { useState, useEffect, useContext } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { pb } from "../services/pocketbase";
-import { NavItem } from "../types";
-import { AdminEditContext } from "../lib/AdminEditContext"; // Importuj AdminEditContext
-import favicon from "../assets/favicon.png";
+import { NavItem, getImageUrl } from "../lib/types";
+import { AdminEditContext } from "../lib/AdminEditContext";
+import { ThemeContext } from "./ThemeManager"; // Import kontekstu
+import favicon from "../assets/favicon.png"; // Fallback
+
 interface NavLink extends NavItem {
   dropdown?: NavLink[];
 }
@@ -15,6 +17,9 @@ const Navbar: React.FC = () => {
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const { navigationItemsUpdated, setNavigationItemsUpdated } =
     useContext(AdminEditContext);
+
+  // Pobieramy ustawienia z ThemeContext
+  const theme = useContext(ThemeContext);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,8 +32,6 @@ const Navbar: React.FC = () => {
             signal: controller.signal,
             requestKey: null,
           });
-
-        console.debug("Navbar: fetched navigation records:", records);
 
         const items: Record<string, NavLink> = {};
         records.forEach((item) => {
@@ -48,36 +51,37 @@ const Navbar: React.FC = () => {
             nestedNavLinks.push(navLink);
           }
         });
-        console.debug("Navbar: nested nav links:", nestedNavLinks);
+
         if (!controller.signal.aborted) {
           setNavLinks(nestedNavLinks);
           if (navigationItemsUpdated) {
-            setNavigationItemsUpdated(false); // Reset the flag after fetching
+            setNavigationItemsUpdated(false);
           }
         }
       } catch (error: any) {
-        const isAbort =
-          error?.isAbort ||
-          error?.name === "AbortError" ||
-          /autocancelled/i.test(String(error?.message || ""));
-
-        if (!isAbort) {
-          console.error("Failed to fetch navigation:", error);
-        }
+        if (!error.isAbort) console.error("Failed to fetch navigation:", error);
       }
     };
 
     fetchNavLinks();
-
-    return () => {
-      controller.abort();
-    };
-  }, [navigationItemsUpdated]); // Add navigationItemsUpdated to dependency array
+    return () => controller.abort();
+  }, [navigationItemsUpdated]);
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const toggleDropdown = (name: string) => {
     setActiveDropdown(activeDropdown === name ? null : name);
   };
+
+  // Ustal URL loga: z bazy danych lub fallback
+  const logoUrl =
+    theme.logo && theme.id
+      ? getImageUrl(theme.collectionId, theme.id, theme.logo)
+      : favicon;
+
+  // Ustal teksty: z bazy danych lub fallback
+  const navTitle = theme.navbar_title || "Powiatowy Zespół Szkół";
+  const navSubtitle = theme.navbar_subtitle || "w Łopusznie";
+  const navTitleMobile = theme.navbar_title_mobile || "PZS Łopuszno";
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50 font-sans">
@@ -85,20 +89,24 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-school-primary rounded-full flex items-center justify-center text-white shrink-0 group-hover:bg-blue-800 transition-colors">
-              <img src={favicon} alt="Budynek szkoły" />
+            <div className="w-10 h-10 bg-school-primary rounded-full flex items-center justify-center text-white shrink-0 group-hover:brightness-110 transition-colors overflow-hidden">
+              <img
+                src={logoUrl}
+                alt="Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="hidden md:block">
               <h1 className="font-serif font-bold text-lg text-school-primary leading-tight">
-                Powiatowy Zespół Szkół
+                {navTitle}
               </h1>
               <p className="text-[10px] text-gray-500 uppercase tracking-widest">
-                w Łopusznie
+                {navSubtitle}
               </p>
             </div>
             <div className="md:hidden">
               <span className="font-serif font-bold text-lg text-school-primary">
-                PZS Łopuszno
+                {navTitleMobile}
               </span>
             </div>
           </Link>
@@ -111,7 +119,7 @@ const Navbar: React.FC = () => {
                   <Link
                     key={link.id}
                     to={link.href}
-                    className="bg-school-accent text-school-primary px-6 py-2.5 rounded-md font-bold hover:bg-yellow-400 transition-colors shadow-sm ml-4 inline-block"
+                    className="bg-school-accent text-school-primary px-6 py-2.5 rounded-md font-bold hover:brightness-110 transition-all shadow-sm ml-4 inline-block"
                   >
                     {link.name}
                   </Link>
@@ -220,8 +228,6 @@ const Navbar: React.FC = () => {
                             {item.is_external ? (
                               <a
                                 href={item.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 className="block py-2 text-sm text-gray-600"
                                 onClick={() => setIsOpen(false)}
                               >
