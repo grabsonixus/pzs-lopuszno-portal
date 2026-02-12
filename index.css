@@ -10,9 +10,23 @@
   --font-body: "Inter", sans-serif;
 }
 
+@keyframes shine {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shine {
+  animation: shine 1.5s infinite linear;
+}
+
 @layer base {
   html {
     font-family: var(--font-body);
+    background-color: var(--neutral-bg); /* Zapobiega prześwitywaniu białego tła przy błędach renderowania */
   }
 
   h1,

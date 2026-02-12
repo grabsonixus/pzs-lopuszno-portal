@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pzs-lopuszno.pl/sitemap.xml

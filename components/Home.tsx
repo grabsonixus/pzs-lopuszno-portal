@@ -9,6 +9,7 @@ import heroBgPlaceholder from "../assets/tlo.png";
 import NewsBlock from "./blocks/NewsBlock";
 import OfferBlock from "./blocks/OfferBlock";
 import ProjectsBlock from "./blocks/ProjectsBlock";
+import SeparatorBlock from "./blocks/SeparatorBlock";
 
 const defaultSettings: HomeSettings = {
   id: "",
@@ -98,6 +99,8 @@ const Home: React.FC = () => {
         return <OfferBlock key={block.id} />;
       case "projects":
         return <ProjectsBlock key={block.id} />;
+      case "separator":
+        return <SeparatorBlock key={block.id} />;
       default:
         return null;
     }
@@ -174,17 +177,24 @@ const Home: React.FC = () => {
                   <Link
                     key={idx}
                     to={btn.link}
-                    className="bg-school-accent text-school-primary px-8 py-4 rounded-md font-bold text-lg hover:bg-yellow-400 transition-all shadow-lg flex items-center justify-center gap-2 transform hover:-translate-y-1"
+                    className="group relative bg-school-accent text-school-primary px-8 py-4 rounded-full font-bold text-lg overflow-hidden transition-all shadow-[0_0_20px_rgba(255,198,0,0.3)] hover:shadow-[0_0_30px_rgba(255,198,0,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3"
                   >
-                    {btn.label} <DynamicIcon name={btn.icon} size={20} />
+                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shine" />
+                    <span className="relative z-10">{btn.label}</span>
+                    <span className="relative z-10 group-hover:translate-x-1 transition-transform">
+                        <DynamicIcon name={btn.icon} size={20} />
+                    </span>
                   </Link>
                 ) : (
                   <a
                     key={idx}
                     href={btn.link}
-                    className="bg-white/10 backdrop-blur-md border border-white/30 text-white px-8 py-4 rounded-md font-semibold hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                    className="group bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/20 hover:border-white/40 transition-all flex items-center justify-center gap-3"
                   >
-                    <DynamicIcon name={btn.icon} size={20} /> {btn.label}
+                    <span className="group-hover:-translate-x-1 transition-transform">
+                        <DynamicIcon name={btn.icon} size={20} />
+                    </span>
+                    {btn.label}
                   </a>
                 )
               )}
@@ -194,21 +204,30 @@ const Home: React.FC = () => {
       </section>
 
       {/* --- QUICK LINKS SECTION --- */}
-      <section className="relative z-30 -mt-16 container mx-auto px-4 mb-20">
+      <section className="relative z-30 -mt-16 container mx-auto px-4 mb-20 transform-gpu">
         <div className={`mx-auto ${containerWidthClass}`}>
           <div
-            className={`grid ${gridColsClass} gap-4 shadow-xl rounded-lg overflow-hidden`}
+            className={`grid ${gridColsClass} gap-6`}
           >
             {settings.quick_links.map((link, idx) => (
               <a
                 key={idx}
                 href={link.link}
-                className={`${getLinkColorClass(
+                className={`relative group overflow-hidden rounded-2xl ${getLinkColorClass(
                   link
-                )} text-white p-6 flex flex-col items-center justify-center gap-3 hover:brightness-110 transition-all h-32 md:h-40 text-center`}
+                )} shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 h-40 flex flex-col items-center justify-center text-white`}
               >
-                <DynamicIcon name={link.icon} size={32} strokeWidth={1.5} />
-                <span className="font-semibold">{link.title}</span>
+                {/* Decorative background elements */}
+                <div className="absolute top-0 right-0 -mr-8 -mt-8 w-24 h-24 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-colors"></div>
+                <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-20 h-20 rounded-full bg-black/5 blur-lg"></div>
+                
+                {/* Content */}
+                <div className="relative z-10 flex flex-col items-center gap-3">
+                    <div className="p-3 bg-white/10 rounded-full backdrop-blur-sm border border-white/20 group-hover:scale-110 group-hover:bg-white/20 transition-all duration-300">
+                        <DynamicIcon name={link.icon} size={32} strokeWidth={1.5} className="group-hover:rotate-6 transition-transform duration-300" />
+                    </div>
+                    <span className="font-bold tracking-wide text-lg group-hover:tracking-widest transition-all duration-300">{link.title}</span>
+                </div>
               </a>
             ))}
           </div>

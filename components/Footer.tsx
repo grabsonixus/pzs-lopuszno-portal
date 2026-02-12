@@ -41,7 +41,7 @@ const defaultFooterData: FooterSettings = {
             links: [
               {
                 label: "Biuletyn Informacji Publicznej (BIP)",
-                url: "#",
+                url: "/kadra",
                 icon: "FileText",
               },
               {
@@ -66,7 +66,7 @@ const defaultFooterData: FooterSettings = {
             links: [
               { label: "E-Dziennik Vulcan", url: "#" },
               { label: "Kadra pedagogiczna", url: "/kadra" },
-              { label: "Projekty unijne", url: "/projekty" },
+              { label: "Projekty unijne", url: "/p/projekty" },
             ],
           },
         },

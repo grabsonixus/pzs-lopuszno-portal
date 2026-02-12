@@ -23,6 +23,7 @@ const AdminSubpages: React.FC = () => {
     try {
       const result = await pb.collection('subpages').getList<Subpage>(1, 50, {
         sort: '-created',
+        fields: 'id,title,created', // OPTYMALIZACJA
         signal,
       });
       if (!signal?.aborted) {
@@ -74,7 +75,25 @@ const AdminSubpages: React.FC = () => {
       </div>
 
       {loading ? (
-        <p>Ładowanie...</p>
+        <div className="bg-white shadow-md rounded-lg overflow-hidden animate-pulse">
+            <div className="h-10 bg-gray-100 border-b border-gray-200"></div>
+            <div className="divide-y divide-gray-200">
+                {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex items-center p-4">
+                        <div className="flex-1">
+                            <div className="h-5 bg-gray-200 rounded w-1/3"></div>
+                        </div>
+                        <div className="w-32 px-6">
+                            <div className="h-4 bg-gray-200 rounded w-20"></div>
+                        </div>
+                         <div className="w-24 px-6 flex gap-3 justify-end">
+                            <div className="h-4 w-4 bg-gray-200 rounded"></div>
+                            <div className="h-4 w-4 bg-gray-200 rounded"></div>
+                         </div>
+                    </div>
+                ))}
+            </div>
+        </div>
       ) : (
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">

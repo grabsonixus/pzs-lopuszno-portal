@@ -10,6 +10,7 @@ import {
   Home,
   Settings,
   LayoutTemplate,
+  FileIcon,
 } from "lucide-react";
 import { AdminEditContext } from "../lib/AdminEditContext";
 
@@ -55,6 +56,13 @@ const AdminNavbar: React.FC = () => {
             >
               <Newspaper size={18} />
               <span className="hidden sm:inline">Artykuły</span>
+            </Link>
+            <Link
+              to="/admin/categories"
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
+            >
+              <FileIcon size={18} />
+              <span className="hidden sm:inline">Kategorie</span>
             </Link>
             <Link
               to="/admin/navigation"

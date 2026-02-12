@@ -17,6 +17,11 @@ export interface Major extends PocketBaseRecord {
 
 export type StaffCategory = "Dyrekcja" | "Nauczyciele" | "Wsparcie";
 
+export interface Category extends PocketBaseRecord {
+  name: string;
+  slug: string;
+}
+
 export interface Staff extends PocketBaseRecord {
   name: string;
   role: string;
@@ -46,6 +51,7 @@ export interface Post {
   date?: string;
   published: boolean;
   gallery?: string[];
+  files?: string[];
   category?: string;
 }
 
@@ -58,6 +64,7 @@ export interface Subpage {
   title: string;
   slug: string;
   content: string;
+  files?: string[];
 }
 
 export interface NavItem {
@@ -88,7 +95,7 @@ export interface QuickLinkItem {
 
 export interface SectionBlock {
   id: string;
-  type: "news" | "offer" | "projects";
+  type: "news" | "offer" | "projects" | "separator";
   visible: boolean;
 }
 
@@ -178,3 +185,5 @@ export const getImageUrl = (
   }
   return url;
 };
+
+export const getFileUrl = getImageUrl;

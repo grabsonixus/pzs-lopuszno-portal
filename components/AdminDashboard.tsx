@@ -7,6 +7,7 @@ import {
   FileText,
   Settings,
   LayoutTemplate,
+  FileIcon,
 } from "lucide-react";
 
 const AdminDashboard: React.FC = () => {
@@ -39,6 +40,19 @@ const AdminDashboard: React.FC = () => {
           <h2 className="text-xl font-bold mb-2">Aktualności</h2>
           <p className="text-gray-600 text-sm">
             Zarządzaj artykułami i ich publikacją.
+          </p>
+        </Link>
+
+        <Link
+          to="/admin/categories"
+          className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group"
+        >
+          <div className="w-12 h-12 bg-pink-100 text-pink-600 rounded-lg flex items-center justify-center mb-4 group-hover:bg-pink-600 group-hover:text-white transition-colors">
+            <FileIcon size={24} />
+          </div>
+          <h2 className="text-xl font-bold mb-2">Kategorie</h2>
+          <p className="text-gray-600 text-sm">
+            Zarządzaj kategoriami aktualności.
           </p>
         </Link>
 

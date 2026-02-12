@@ -6,6 +6,7 @@ import NewsList from "./components/NewsList";
 import NewsDetail from "./components/NewsDetail";
 import PrivateRoute from "./components/PrivateRoute";
 import SubpageDetail from "./components/SubpageDetail";
+import NotFound from "./components/NotFound";
 import { AdminEditProvider } from "./lib/AdminEditContext";
 
 // lazy-loaded admin pages
@@ -18,11 +19,12 @@ const AdminSubpages = lazy(() => import("./components/AdminSubpages"));
 const AdminSubpageForm = lazy(() => import("./components/AdminSubpageForm"));
 const AdminHomeForm = lazy(() => import("./components/AdminHomeForm"));
 const AdminSettingsForm = lazy(() => import("./components/AdminSettingsForm"));
+const AdminCategories = lazy(() => import("./components/AdminCategories"));
 const AdminFooterForm = lazy(() => import("./components/AdminFooterForm")); // NOWY IMPORT
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter basename="/nowa/">
+    <BrowserRouter>
       <AdminEditProvider>
         <Layout>
           <Suspense
@@ -31,6 +33,8 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/aktualnosci" element={<NewsList />} />
+              <Route path="/aktualnosci" element={<NewsList />} />
+              <Route path="/aktualnosci/kategoria/:categorySlug" element={<NewsList />} />
               <Route path="/aktualnosci/:slug" element={<NewsDetail />} />
               <Route path="/p/:slug" element={<SubpageDetail />} />
               <Route path="/admin" element={<AdminLogin />} />
@@ -48,17 +52,12 @@ const App: React.FC = () => {
                 <Route path="navigation" element={<AdminNavigation />} />
                 <Route path="home" element={<AdminHomeForm />} />
                 <Route path="settings" element={<AdminSettingsForm />} />
+                <Route path="settings" element={<AdminSettingsForm />} />
+                <Route path="categories" element={<AdminCategories />} />
                 <Route path="footer" element={<AdminFooterForm />} />{" "}
                 {/* NOWA TRASA */}
               </Route>
-              <Route
-                path="*"
-                element={
-                  <div className="container mx-auto p-20 text-center">
-                    404 - Strona nie znaleziona
-                  </div>
-                }
-              />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </Layout>

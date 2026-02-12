@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
   return {
     // WAŻNE: To ustawienie jest kluczowe dla działania w podkatalogu na serwerze
-    base: "/nowa/",
+    base: "/",
 
     server: {
       port: 3000,

@@ -89,13 +89,11 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-school-primary rounded-full flex items-center justify-center text-white shrink-0 group-hover:brightness-110 transition-colors overflow-hidden">
-              <img
-                src={logoUrl}
-                alt="Logo"
-                className="w-full h-full object-contain"
-              />
-            </div>
+            <img
+              src={logoUrl}
+              alt="Logo"
+              className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            />
             <div className="hidden md:block">
               <h1 className="font-serif font-bold text-lg text-school-primary leading-tight">
                 {navTitle}

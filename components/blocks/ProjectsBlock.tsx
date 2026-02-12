@@ -37,7 +37,7 @@ const ProjectsBlock: React.FC = () => {
           </div>
           <div className="text-center">
             <Link
-              to="/projekty"
+              to="/p/projekty"
               className="text-sm font-semibold hover:text-school-accent transition-colors underline decoration-school-accent/50 underline-offset-4"
             >
               Dowiedz się więcej o naszych projektach

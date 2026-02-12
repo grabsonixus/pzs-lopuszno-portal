@@ -1,23 +1,82 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { pb } from '../services/pocketbase';
-import { Post, getImageUrl } from '../lib/types';
+import { Post, getImageUrl, Category } from '../lib/types';
 import { Calendar, ArrowRight, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const NewsList: React.FC = () => {
+  const { categorySlug } = useParams<{ categorySlug: string }>();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  
+  // Debounce search
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const ITEMS_PER_PAGE = 6;
+  
+  useEffect(() => {
+    pb.collection("categories").getFullList<Category>({ sort: "name" })
+        .then(setCategories)
+        .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (categorySlug && categories.length > 0) {
+        const cat = categories.find(c => c.slug === categorySlug);
+        if (cat) {
+            setSelectedCategory(cat.name);
+        }
+    } else if (!categorySlug) {
+        setSelectedCategory("");
+    }
+  }, [categorySlug, categories]);
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const catName = e.target.value;
+      setSelectedCategory(catName);
+      if (catName) {
+          const cat = categories.find(c => c.name === catName);
+          if (cat) {
+              navigate(`/aktualnosci/kategoria/${cat.slug}`);
+          }
+      } else {
+          navigate('/aktualnosci');
+      }
+  };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+        setDebouncedSearch(search);
+        setPage(1); // Reset page on search change
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(1); // Reset page on category change
+  }, [selectedCategory]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
       try {
+        let filterRule = 'published = true';
+        if (debouncedSearch) {
+            filterRule += ` && title ~ "${debouncedSearch}"`;
+        }
+        if (selectedCategory) {
+            filterRule += ` && category = "${selectedCategory}"`;
+        }
+
         const result = await pb.collection('posts').getList<Post>(page, ITEMS_PER_PAGE, {
-          sort: '-created',
-          filter: 'published = true',
+          sort: '-date,-created',
+          filter: filterRule,
         });
         setPosts(result.items);
         setTotalPages(result.totalPages);
@@ -30,7 +89,7 @@ const NewsList: React.FC = () => {
 
     fetchPosts();
     window.scrollTo(0, 0);
-  }, [page]);
+  }, [page, debouncedSearch, selectedCategory]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -46,6 +105,27 @@ const NewsList: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <h1 className="font-serif text-3xl md:text-4xl font-bold text-school-primary mb-2">Aktualności</h1>
         <div className="h-1 w-20 bg-school-accent rounded-full mb-10"></div>
+
+        {/* Filters */}
+        <div className="mb-8 flex flex-col md:flex-row gap-4">
+            <input 
+                type="text" 
+                placeholder="Szukaj aktualności..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="flex-grow p-3 border border-gray-300 rounded-md focus:ring-school-primary focus:border-school-primary"
+            />
+            <select
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                className="p-3 border border-gray-300 rounded-md focus:ring-school-primary focus:border-school-primary min-w-[200px]"
+            >
+                <option value="">Wszystkie kategorie</option>
+                {categories.map(cat => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
+            </select>
+        </div>
 
         {loading ? (
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -73,8 +153,8 @@ const NewsList: React.FC = () => {
                         className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <BookOpen size={48} />
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-school-primary/5 to-school-accent/10 group-hover:from-school-primary/10 group-hover:to-school-accent/20 transition-colors duration-500">
+                        <BookOpen size={40} className="text-school-primary/20 group-hover:text-school-primary/30 transition-colors" />
                       </div>
                     )}
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur text-school-primary text-xs font-bold px-3 py-1 rounded-full shadow-sm">

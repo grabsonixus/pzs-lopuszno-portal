@@ -573,6 +573,12 @@ const AdminHomeForm: React.FC = () => {
               >
                 Projekty
               </button>
+              <button
+                onClick={() => addSection("separator")}
+                className="px-3 py-1 border rounded text-sm hover:bg-gray-50 bg-indigo-50 text-indigo-700 border-indigo-200"
+              >
+                + Separator
+              </button>
             </div>
 
             <div className="space-y-3">
