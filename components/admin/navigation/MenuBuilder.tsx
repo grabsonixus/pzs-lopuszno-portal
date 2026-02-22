@@ -63,10 +63,10 @@ export const MenuBuilder: React.FC<MenuBuilderProps> = ({
                         "mt-2 ml-4 p-2 bg-gray-50 border border-gray-200 rounded-md transition-colors",
                          // This div wraps the nested MenuBuilder, visual feedback handled inside MenuBuilder
                     )}>
-                        <p className="text-xs text-gray-500 mb-2 uppercase font-semibold font-mono tracking-wider flex items-center gap-2">
+                        <div className="text-xs text-gray-500 mb-2 uppercase font-semibold font-mono tracking-wider flex items-center gap-2">
                              <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
                              Podmenu (Upuść tutaj)
-                        </p>
+                        </div>
                         <MenuBuilder 
                             items={item.children} 
                             onUpdateItem={onUpdateItem} 

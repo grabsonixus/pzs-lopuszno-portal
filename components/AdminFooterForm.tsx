@@ -7,6 +7,7 @@ import {
   FooterBlock,
   FooterBlockType,
   FooterLink,
+  getImageUrl,
 } from "../lib/types";
 import {
   Save,
@@ -20,20 +21,9 @@ import {
 } from "lucide-react";
 import ConfirmationModal from "./ConfirmationModal";
 import DynamicIcon from "./DynamicIcon";
+import IconPicker from "./IconPicker";
 
-const AVAILABLE_ICONS = [
-  "FileText",
-  "Shield",
-  "Eye",
-  "Globe",
-  "BookOpen",
-  "Phone",
-  "Mail",
-  "MapPin",
-  "Facebook",
-  "Instagram",
-  "Youtube",
-];
+
 
 const AdminFooterForm: React.FC = () => {
   const navigate = useNavigate();
@@ -51,6 +41,8 @@ const AdminFooterForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isCancelModalOpen, setCancelModalOpen] = useState(false);
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
+  const [currentLinkIndex, setCurrentLinkIndex] = useState<number | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -231,6 +223,67 @@ const AdminFooterForm: React.FC = () => {
       return { ...prev, columns: newColumns };
     });
     setEditingBlock(null);
+  };
+
+  // --- Icon Picker Handlers ---
+
+  const handleIconSelect = (iconName: string) => {
+    if (editingBlock && currentLinkIndex !== null) {
+      updateLink(currentLinkIndex, "icon", iconName);
+    }
+    setIconPickerOpen(false);
+  };
+
+  const handleIconUpload = async (file: File) => {
+    if (!settings.id) {
+      alert("Musisz najpierw zapisać ustawienia, aby wgrywać pliki.");
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("files", file);
+      const record = await pb
+        .collection("footer_settings")
+        .update(settings.id, formData);
+      const fileName =
+        record.files && record.files.length > 0
+          ? record.files[record.files.length - 1]
+          : null;
+      if (fileName) {
+        const url = getImageUrl(record.collectionId, record.id, fileName);
+        handleIconSelect(url);
+      }
+    } catch (e) {
+      console.error(e);
+      alert(
+        "Błąd wgrywania pliku. Sprawdź czy kolekcja footer_settings ma pole 'files'."
+      );
+    }
+  };
+
+  const handleLinkFileUpload = async (file: File, idx: number) => {
+    if (!settings.id) {
+      alert("Musisz najpierw zapisać ustawienia, aby wgrywać pliki.");
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("files", file);
+      const record = await pb
+        .collection("footer_settings")
+        .update(settings.id, formData);
+      const fileName =
+        record.files && record.files.length > 0
+          ? record.files[record.files.length - 1]
+          : null;
+      if (fileName) {
+        const url = getImageUrl(record.collectionId, record.id, fileName);
+        updateLink(idx, "url", url);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Błąd wgrywania pliku.");
+    }
   };
 
   // --- Helpers for Modal Content ---
@@ -620,20 +673,42 @@ const AdminFooterForm: React.FC = () => {
                             placeholder="URL (/strona lub https://)"
                             className="flex-1 border rounded p-1 text-sm"
                           />
-                          <select
-                            value={link.icon || ""}
-                            onChange={(e) =>
-                              updateLink(idx, "icon", e.target.value)
-                            }
-                            className="w-1/3 border rounded p-1 text-sm"
-                          >
-                            <option value="">Brak ikony</option>
-                            {AVAILABLE_ICONS.map((ic) => (
-                              <option key={ic} value={ic}>
-                                {ic}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="flex items-center gap-2 w-1/3">
+                            <button
+                                onClick={() => {
+                                    setCurrentLinkIndex(idx);
+                                    setIconPickerOpen(true);
+                                }}
+                                className="flex-1 border rounded p-1 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 h-[30px]"
+                                title="Wybierz ikonę"
+                            >
+                                {link.icon ? (
+                                    <>
+                                        <DynamicIcon name={link.icon} size={16} />
+                                        <span className="truncate text-xs">{link.icon}</span>
+                                    </>
+                                ) : (
+                                    <span className="text-gray-400 text-xs">Ikona</span>
+                                )}
+                            </button>
+                            <div className="relative">
+                                <input 
+                                    type="file" 
+                                    id={`file-upload-${idx}`} 
+                                    className="hidden" 
+                                    onChange={(e) => {
+                                        if(e.target.files?.[0]) handleLinkFileUpload(e.target.files[0], idx);
+                                    }}
+                                />
+                                <label 
+                                    htmlFor={`file-upload-${idx}`}
+                                    className="cursor-pointer p-1.5 border rounded hover:bg-gray-100 text-gray-600 block"
+                                    title="Wgraj plik do pobrania i ustaw jako URL"
+                                >
+                                    <Plus size={14} />
+                                </label>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -677,6 +752,19 @@ const AdminFooterForm: React.FC = () => {
         confirmText="Tak, anuluj"
         cancelText="Nie, kontynuuj edycję"
       />
+
+      {iconPickerOpen && (
+        <IconPicker
+          onSelect={handleIconSelect}
+          onClose={() => setIconPickerOpen(false)}
+          selectedIcon={
+            editingBlock && currentLinkIndex !== null
+              ? editingBlock.block.data.links?.[currentLinkIndex]?.icon
+              : undefined
+          }
+          onFileSelect={handleIconUpload}
+        />
+      )}
     </div>
   );
 };

@@ -44,13 +44,6 @@ const AdminNavbar: React.FC = () => {
               <span className="hidden sm:inline">Dashboard</span>
             </Link>
             <Link
-              to="/admin/home"
-              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
-            >
-              <Home size={18} />
-              <span className="hidden sm:inline">Strona Główna</span>
-            </Link>
-            <Link
               to="/admin/news"
               className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
             >
@@ -58,32 +51,11 @@ const AdminNavbar: React.FC = () => {
               <span className="hidden sm:inline">Artykuły</span>
             </Link>
             <Link
-              to="/admin/categories"
+              to="/admin/subpages"
               className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
             >
               <FileIcon size={18} />
-              <span className="hidden sm:inline">Kategorie</span>
-            </Link>
-            <Link
-              to="/admin/navigation"
-              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
-            >
-              <Waypoints size={18} />
-              <span className="hidden sm:inline">Nawigacja</span>
-            </Link>
-            <Link
-              to="/admin/footer"
-              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
-            >
-              <LayoutTemplate size={18} />
-              <span className="hidden sm:inline">Stopka</span>
-            </Link>
-            <Link
-              to="/admin/settings"
-              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
-            >
-              <Settings size={18} />
-              <span className="hidden sm:inline">Ustawienia</span>
+              <span className="hidden sm:inline">Podstrony</span>
             </Link>
             {pageId && pageType && (
               <Link

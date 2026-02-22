@@ -7,9 +7,11 @@ import SunEditorCore from "suneditor/src/lib/core";
 import "suneditor/dist/css/suneditor.min.css";
 import pl from "suneditor/src/lang/pl";
 import ConfirmationModal from "./ConfirmationModal";
-import { Upload, Trash2, FileText, Link as LinkIcon, X, CheckCircle } from "lucide-react";
+import { Upload, Trash2, FileText, Link as LinkIcon, X, CheckCircle, ChevronDown, ChevronUp, Pencil, Save as SaveIcon } from "lucide-react";
 import Toast from "./Toast";
 import InputModal from "./InputModal";
+import IconPicker from "./IconPicker";
+import DynamicIcon from "./DynamicIcon";
 
 const AdminSubpageForm: React.FC = () => {
   const [subpage, setSubpage] = useState<Partial<Subpage>>({
@@ -21,6 +23,17 @@ const AdminSubpageForm: React.FC = () => {
   });
   const [newFiles, setNewFiles] = useState<File[]>([]); // Nowy stan dla plików
   const [filesToDelete, setFilesToDelete] = useState<string[]>([]); // Stan dla plików do usunięcia
+  
+  // Stan widoczności sekcji plików (domyślnie ukryta)
+  const [showFilesSection, setShowFilesSection] = useState(false);
+
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
+  const [currentFileForIcon, setCurrentFileForIcon] = useState<string | null>(null);
+  
+  // Stan edycji nazwy pliku
+  const [editingFile, setEditingFile] = useState<string | null>(null);
+  const [tempFileName, setTempFileName] = useState("");
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -32,6 +45,10 @@ const AdminSubpageForm: React.FC = () => {
   const [linkModalReq, setLinkModalReq] = useState<{ fileName: string } | null>(
     null
   );
+  
+  // Field name detection
+  const [fileFieldName, setFileFieldName] = useState("files");
+
   const docInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<SunEditorCore>();
   const navigate = useNavigate();
@@ -46,7 +63,25 @@ const AdminSubpageForm: React.FC = () => {
         .getOne<Subpage>(id, { signal: controller.signal })
         .then((record) => {
           if (!controller.signal.aborted) {
-            setSubpage(record);
+            console.log("Fetched record:", record);
+            const keys = Object.keys(record);
+            
+            // Detect file field name
+            let detectedField = "files";
+            if (keys.includes("documents")) detectedField = "documents";
+            else if (keys.includes("file")) detectedField = "file";
+            else if (keys.includes("pliki")) detectedField = "pliki";
+            else if (keys.includes("attachment")) detectedField = "attachment";
+            else if (keys.includes("attachments")) detectedField = "attachments";
+            else if (keys.includes("files")) detectedField = "files";
+            
+            console.log("Detected file field name:", detectedField);
+            setFileFieldName(detectedField);
+            setSubpage({
+                ...record,
+                // Normalize files to always be in 'files' property of local state
+                files: (record as any)[detectedField] || [],
+            });
           }
         })
         .catch((err) => {
@@ -155,6 +190,20 @@ const AdminSubpageForm: React.FC = () => {
     setIsSuccess(false);
   };
 
+  const handleFileIconSelect = (iconName: string) => {
+    if (currentFileForIcon) {
+        setSubpage(prev => ({
+            ...prev,
+            file_icons: {
+                ...prev.file_icons,
+                [currentFileForIcon]: iconName
+            }
+        }));
+        setIconPickerOpen(false);
+        setCurrentFileForIcon(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -167,22 +216,34 @@ const AdminSubpageForm: React.FC = () => {
     formData.append("content", subpage.content || "");
 
     // Obsługa plików (dokumentów) - tylko NOWE pliki i USUNIĘTE
+    console.log("Files to delete:", filesToDelete);
+    console.log("Using field name:", fileFieldName);
     if (filesToDelete.length > 0) {
         filesToDelete.forEach((fileName) => {
-            formData.append("files-", fileName);
+            formData.append(fileFieldName + "-", fileName);
         });
     }
 
+    console.log("New files to add:", newFiles);
     newFiles.forEach((file) => {
-        formData.append("files", file);
+        // Używamy składni z plusem (np. 'files+'), aby dodać pliki do istniejącyh
+        formData.append(fileFieldName + "+", file);
     });
+
+    if (subpage.file_icons) {
+        formData.append("file_icons", JSON.stringify(subpage.file_icons));
+    }
+    
+    if (subpage.file_names) {
+        formData.append("file_names", JSON.stringify(subpage.file_names));
+    }
 
     try {
       if (id) {
         const updatedRecord = await pb.collection("subpages").update<Subpage>(id, formData);
         setSubpage(prev => ({
             ...prev,
-            files: updatedRecord.files
+            files: (updatedRecord as any)[fileFieldName] || []
         }));
         setNewFiles([]); // Wyczyść nowe pliki
         setFilesToDelete([]); // Wyczyść do usunięcia
@@ -296,18 +357,30 @@ const AdminSubpageForm: React.FC = () => {
     
               {/* PLIKI DO POBRANIA */}
               <div className="border-t pt-6">
-                <div className="flex justify-between items-center mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Pliki do pobrania
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => docInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm font-medium transition-colors"
-                  >
-                    <Upload size={16} />
-                    Dodaj pliki
-                  </button>
+                <div 
+                    className="flex justify-between items-center mb-4 cursor-pointer select-none"
+                    onClick={() => setShowFilesSection(!showFilesSection)}
+                >
+                  <div className="flex items-center gap-2">
+                      <label className="block text-sm font-medium text-gray-700 cursor-pointer">
+                        Pliki do pobrania
+                      </label>
+                      {showFilesSection ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-500" />}
+                  </div>
+                  
+                  {showFilesSection && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            docInputRef.current?.click();
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm font-medium transition-colors"
+                      >
+                        <Upload size={16} />
+                        Dodaj pliki
+                      </button>
+                  )}
                   <input
                     type="file"
                     ref={docInputRef}
@@ -317,59 +390,160 @@ const AdminSubpageForm: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-2 mb-4">
-                    {/* Istniejące pliki */}
-                    {subpage.files?.map((fileName, index) => (
-                        <div key={`existing-file-${index}`} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-md">
-                            <div className="flex items-center gap-3 overflow-hidden">
-                                <FileText className="text-gray-400 flex-shrink-0" size={20} />
-                                <span className="text-sm text-gray-700 truncate font-medium">{fileName}</span>
-                                <span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full">Zapisane</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => openLinkModal(fileName)}
-                                    className="text-indigo-600 hover:text-indigo-800 p-1"
-                                    title="Wstaw link do treści"
-                                >
-                                    <LinkIcon size={18} />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => removeExistingDocFile(fileName)}
-                                    className="text-red-500 hover:text-red-700 p-1"
-                                    title="Usuń plik"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                {showFilesSection && (
+                    <div className="space-y-2 mb-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                        {/* Istniejące pliki */}
+                        {subpage.files?.map((fileName, index) => (
+                            <div key={`existing-file-${index}`} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-md">
+                                <div className="flex items-center gap-3 overflow-hidden flex-grow mr-2">
+                                    <FileText className="text-gray-400 flex-shrink-0" size={20} />
+                                    
+                                    {editingFile === fileName ? (
+                                        <div className="flex items-center gap-2 flex-grow">
+                                            <input 
+                                                type="text" 
+                                                value={tempFileName}
+                                                onChange={(e) => setTempFileName(e.target.value)}
+                                                className="text-sm border rounded px-2 py-1 flex-grow outline-none focus:border-indigo-500"
+                                                autoFocus
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        setSubpage(prev => ({
+                                                            ...prev,
+                                                            file_names: {
+                                                                ...prev.file_names,
+                                                                [fileName]: tempFileName
+                                                            }
+                                                        }));
+                                                        setEditingFile(null);
+                                                    }
+                                                }}
+                                            />
+                                            <button 
+                                                type="button"
+                                                onClick={() => {
+                                                    setSubpage(prev => ({
+                                                        ...prev,
+                                                        file_names: {
+                                                            ...prev.file_names,
+                                                            [fileName]: tempFileName
+                                                        }
+                                                    }));
+                                                    setEditingFile(null);
+                                                }}
+                                                className="text-green-600 hover:text-green-800 p-1"
+                                                title="Zapisz nazwę"
+                                            >
+                                                <SaveIcon size={16} />
+                                            </button>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setEditingFile(null)}
+                                                className="text-gray-500 hover:text-gray-700 p-1"
+                                                title="Anuluj"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col overflow-hidden">
+                                             <div className="flex items-center gap-2">
+                                                <span className="text-sm text-gray-700 truncate font-medium max-w-[200px] sm:max-w-md">
+                                                    {subpage.file_names?.[fileName] || fileName}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setEditingFile(fileName);
+                                                        setTempFileName(subpage.file_names?.[fileName] || fileName); // Ustawiamy nazwę wyświetlaną lub nazwę pliku jako startową
+                                                    }}
+                                                    className="text-gray-400 hover:text-indigo-600 p-0.5"
+                                                    title="Edytuj nazwę wyświetlaną"
+                                                >
+                                                    <Pencil size={12} />
+                                                </button>
+                                             </div>
+                                            {(subpage.file_names?.[fileName] && subpage.file_names[fileName] !== fileName) && (
+                                                <span className="text-[10px] text-gray-400 truncate">{fileName}</span>
+                                            )}
+                                        </div>
+                                    )}
 
-                    {/* Nowe pliki */}
-                    {newFiles.map((file, index) => (
-                        <div key={`new-file-${index}`} className="flex items-center justify-between p-3 bg-indigo-50 border border-indigo-100 rounded-md">
-                             <div className="flex items-center gap-3 overflow-hidden">
-                                <FileText className="text-indigo-400 flex-shrink-0" size={20} />
-                                <span className="text-sm text-gray-700 truncate font-medium">{file.name}</span>
-                                <span className="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full">Nowe</span>
+                                    {editingFile !== fileName && (
+                                         <span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">Zapisane</span>
+                                    )}
+                                </div>
+                                
+                                {editingFile !== fileName && (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => openLinkModal(fileName)}
+                                        className="text-indigo-600 hover:text-indigo-800 p-1"
+                                        title="Wstaw link do treści"
+                                    >
+                                        <LinkIcon size={18} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setCurrentFileForIcon(fileName);
+                                            setIconPickerOpen(true);
+                                        }}
+                                        className="p-1 hover:bg-gray-200 rounded text-gray-600 flex items-center gap-1 border border-gray-300 px-2"
+                                        title="Zmień ikonę pliku"
+                                    >
+                                        {subpage.file_icons?.[fileName] ? (
+                                            <>
+                                                <DynamicIcon name={subpage.file_icons[fileName]} size={16} />
+                                                <span className="text-xs">{subpage.file_icons[fileName]}</span>
+                                            </>
+                                        ) : (
+                                            <span className="text-xs">Ikona</span>
+                                        )}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeExistingDocFile(fileName)}
+                                        className="text-red-500 hover:text-red-700 p-1"
+                                        title="Usuń plik"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
+                                )}
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => removeNewDocFile(index)}
-                                className="text-red-500 hover:text-red-700 p-1"
-                                title="Usuń z wyboru"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-                 {(newFiles.length > 0) && (
-                     <p className="text-xs text-amber-600 mb-4 flex items-center gap-1">
-                        <span className="font-bold">Uwaga:</span> Linkowanie do nowych plików możliwe dopiero po zapisaniu podstrony.
-                     </p>
+                        ))}
+
+                        {/* Nowe pliki */}
+                        {newFiles.map((file, index) => (
+                            <div key={`new-file-${index}`} className="flex items-center justify-between p-3 bg-indigo-50 border border-indigo-100 rounded-md">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                    <FileText className="text-indigo-400 flex-shrink-0" size={20} />
+                                    <span className="text-sm text-gray-700 truncate font-medium">{file.name}</span>
+                                    <span className="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full">Nowe</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeNewDocFile(index)}
+                                    className="text-red-500 hover:text-red-700 p-1"
+                                    title="Usuń z wyboru"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+                        ))}
+                    
+                         {(newFiles.length > 0) && (
+                             <p className="text-xs text-amber-600 mb-4 flex items-center gap-1">
+                                <span className="font-bold">Uwaga:</span> Linkowanie do nowych plików możliwe dopiero po zapisaniu podstrony.
+                             </p>
+                        )}
+                         {!subpage.files?.length && !newFiles.length && (
+                             <p className="text-sm text-gray-400 italic text-center py-4">Brak załączonych plików.</p>
+                         )}
+                    </div>
                 )}
               </div>
 
@@ -433,6 +607,15 @@ const AdminSubpageForm: React.FC = () => {
             confirmText="Wstaw link"
             inputPlaceholder="Np. Pobierz plan lekcji"
           />
+
+          {iconPickerOpen && (
+            <IconPicker
+                onSelect={handleFileIconSelect}
+                onClose={() => setIconPickerOpen(false)}
+                selectedIcon={currentFileForIcon && subpage.file_icons ? subpage.file_icons[currentFileForIcon] : undefined}
+                onFileSelect={undefined} 
+            />
+          )}
     
           <aside className="sticky top-24">
             <div className="bg-white p-6 shadow-md rounded-lg flex flex-col gap-4">

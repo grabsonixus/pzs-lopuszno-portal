@@ -5,6 +5,7 @@ import { pb } from "../services/pocketbase";
 import { NavItem, getImageUrl } from "../lib/types";
 import { AdminEditContext } from "../lib/AdminEditContext";
 import { ThemeContext } from "./ThemeManager"; // Import kontekstu
+import { SocialIcons } from "./SocialIcons";
 import favicon from "../assets/favicon.png"; // Fallback
 
 interface NavLink extends NavItem {
@@ -84,11 +85,11 @@ const Navbar: React.FC = () => {
   const navTitleMobile = theme.navbar_title_mobile || "PZS Łopuszno";
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50 font-sans">
-      <div className="container mx-auto px-4">
+     <nav className="bg-white shadow-md sticky top-0 z-50 font-sans relative">
+      <div className="container mx-auto px-4 relative z-10">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
             <img
               src={logoUrl}
               alt="Logo"
@@ -131,9 +132,23 @@ const Navbar: React.FC = () => {
               ) {
                 return (
                   <div key={link.id} className="relative group">
-                    <button className="flex items-center gap-1 text-gray-700 hover:text-school-primary font-medium py-2 px-4 transition-colors">
-                      {link.name} <ChevronDown size={14} />
-                    </button>
+                    {link.is_external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-gray-700 hover:text-school-primary font-medium py-2 px-4 transition-colors"
+                      >
+                        {link.name} <ChevronDown size={14} />
+                      </a>
+                    ) : (
+                      <Link
+                        to={link.href}
+                        className="flex items-center gap-1 text-gray-700 hover:text-school-primary font-medium py-2 px-4 transition-colors"
+                      >
+                        {link.name} <ChevronDown size={14} />
+                      </Link>
+                    )}
                     <div className="absolute top-full left-0 w-56 bg-white border border-gray-100 shadow-lg rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top pt-2 z-10">
                       {link.dropdown.map((item) =>
                         item.is_external ? (
@@ -176,11 +191,16 @@ const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={toggleMenu}
-            className="lg:hidden text-school-primary p-2"
+            className="lg:hidden text-school-primary p-2 flex-shrink-0"
           >
             {isOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
+      </div>
+      
+      {/* Social Icons - Absolutely Positioned to Right Screen Edge (Outside Container) */}
+      <div className="hidden 2xl:flex absolute top-1/2 -translate-y-1/2 right-8 z-20">
+         <SocialIcons />
       </div>
 
       {/* Mobile Menu Overlay */}
@@ -191,7 +211,7 @@ const Navbar: React.FC = () => {
               if (link.is_highlight) {
                 return (
                   <Link
-                    key={link.name}
+                    key={link.id || link.name}
                     to={link.href}
                     className="block w-full my-2 bg-school-accent text-school-primary px-6 py-3 rounded-md font-bold text-center"
                     onClick={() => setIsOpen(false)}
@@ -206,19 +226,39 @@ const Navbar: React.FC = () => {
                 link.dropdown.length > 0
               ) {
                 return (
-                  <div key={link.name} className="border-b border-gray-50">
-                    <button
-                      onClick={() => toggleDropdown(link.name)}
-                      className="flex justify-between items-center w-full text-left py-3 text-gray-700 font-medium"
-                    >
-                      <span>{link.name}</span>
-                      <ChevronDown
-                        size={16}
-                        className={`transform transition-transform ${
-                          activeDropdown === link.name ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
+                  <div key={link.id || link.name} className="border-b border-gray-50">
+                    <div className="flex justify-between items-center w-full">
+                        {link.is_external ? (
+                            <a
+                                href={link.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 py-3 text-gray-700 font-medium text-left"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                {link.name}
+                            </a>
+                        ) : (
+                            <Link
+                                to={link.href}
+                                className="flex-1 py-3 text-gray-700 font-medium text-left"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                {link.name}
+                            </Link>
+                        )}
+                        <button
+                            onClick={() => toggleDropdown(link.name)}
+                            className="p-3 text-gray-500 hover:text-school-primary"
+                        >
+                            <ChevronDown
+                                size={16}
+                                className={`transform transition-transform ${
+                                activeDropdown === link.name ? "rotate-180" : ""
+                                }`}
+                            />
+                        </button>
+                    </div>
                     {activeDropdown === link.name && (
                       <div className="bg-neutral-bg pl-4 py-2">
                         {link.dropdown.map((item) => (
@@ -258,6 +298,11 @@ const Navbar: React.FC = () => {
                 </Link>
               );
             })}
+            
+            <div className="pt-4 mt-4 border-t border-gray-100">
+               <p className="text-xs text-gray-400 mb-2 font-semibold">MEDIA SPOŁECZNOŚCIOWE</p>
+               <SocialIcons className="justify-center" />
+            </div>
           </div>
         </div>
       )}

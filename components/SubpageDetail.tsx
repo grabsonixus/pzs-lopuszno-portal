@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { pb } from "../services/pocketbase";
-import { Subpage } from "../lib/types";
-import { ArrowLeft, Home, ChevronRight } from "lucide-react";
+import { Subpage, getFileUrl } from "../lib/types";
+
+import DynamicIcon from "./DynamicIcon";
+import { ArrowLeft, Home, ChevronRight, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { AdminEditContext } from "../lib/AdminEditContext";
 
 // Simple in-memory cache
@@ -13,6 +15,7 @@ const SubpageDetail: React.FC = () => {
   const [subpage, setSubpage] = useState<Subpage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [showFiles, setShowFiles] = useState(false); // Stan widoczności plików
   const { setPageId, setPageType } = useContext(AdminEditContext);
   
   // Track if we are navigating to a new slug to handle transition
@@ -188,6 +191,45 @@ const SubpageDetail: React.FC = () => {
                 dangerouslySetInnerHTML={{ __html: subpage ? processContent(subpage.content) : "" }}
               ></div>
            )}
+        {subpage && subpage.files && subpage.files.length > 0 && (
+          <div className="mt-8 mb-12 border rounded-lg p-4 bg-gray-50">
+            <div 
+              className="flex justify-between items-center cursor-pointer select-none"
+              onClick={() => setShowFiles(!showFiles)}
+            >
+              <h3 className="text-xl font-serif font-bold text-gray-800 flex items-center gap-2">
+                Pliki do pobrania
+                <span className="text-sm font-sans font-normal text-gray-500">({subpage.files.length})</span>
+              </h3>
+              {showFiles ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
+            </div>
+
+            {showFiles && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                {subpage.files.map((fileName, index) => (
+                  <a
+                    key={index}
+                    href={getFileUrl(subpage.collectionId, subpage.id, fileName)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all group"
+                  >
+                    <div className="text-school-primary p-2 bg-gray-50 rounded-full shadow-sm group-hover:text-school-accent transition-colors">
+                      {subpage.file_icons?.[fileName] ? (
+                        <DynamicIcon name={subpage.file_icons[fileName]} size={20} />
+                      ) : (
+                        <FileText size={20} />
+                      )}
+                    </div>
+                    <span className="font-medium text-gray-700 group-hover:text-gray-900 truncate">
+                      {subpage.file_names?.[fileName] || fileName}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         </div>
       </div>
     </article>

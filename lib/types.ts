@@ -53,6 +53,8 @@ export interface Post {
   gallery?: string[];
   files?: string[];
   category?: string;
+  file_icons?: Record<string, string>;
+  file_names?: Record<string, string>; // Mapowanie nazwa_pliku -> nazwa_wyświetlana
 }
 
 export interface Subpage {
@@ -65,6 +67,8 @@ export interface Subpage {
   slug: string;
   content: string;
   files?: string[];
+  file_icons?: Record<string, string>;
+  file_names?: Record<string, string>; // Mapowanie nazwa_pliku -> nazwa_wyświetlana
 }
 
 export interface NavItem {
@@ -76,6 +80,17 @@ export interface NavItem {
   is_highlight?: boolean;
   is_external?: boolean;
   has_dropdown?: boolean;
+}
+
+export type SocialPlatform = "Facebook" | "Instagram" | "YouTube" | "TikTok" | "X" | "LinkedIn" | "Custom";
+
+export interface SocialLink extends PocketBaseRecord {
+  platform: SocialPlatform;
+  url: string;
+  icon: string; // Lucide icon name
+  order: number;
+  is_active: boolean;
+  custom_label?: string; // Optional label for custom links or tooltips
 }
 
 export interface HeroButton {
@@ -187,3 +202,9 @@ export const getImageUrl = (
 };
 
 export const getFileUrl = getImageUrl;
+
+export interface SystemUpdate extends PocketBaseRecord {
+  version: string;
+  description: string;
+  date: string;
+}

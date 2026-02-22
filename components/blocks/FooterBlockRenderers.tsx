@@ -106,7 +106,7 @@ export const AdminBlockRenderer: React.FC = () => (
       Panel zarządzania treścią dla administratorów i redaktorów strony.
     </p>
     <a
-      href={`admin`}
+      href={`/admin`}
       target="_blank"
       rel="noopener noreferrer"
       className="inline-flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm transition-colors border border-blue-700"

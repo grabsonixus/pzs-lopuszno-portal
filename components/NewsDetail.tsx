@@ -2,14 +2,17 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { pb } from '../services/pocketbase';
 import { Post, getImageUrl } from '../lib/types';
-import { Calendar, ArrowLeft, Share2 } from 'lucide-react';
+
+import { Calendar, ArrowLeft, Share2, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { AdminEditContext } from '../lib/AdminEditContext';
+import DynamicIcon from './DynamicIcon';
 
 const NewsDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [showFiles, setShowFiles] = useState(false); // Stan widoczności plików
   const { setPageId, setPageType } = useContext(AdminEditContext);
 
   useEffect(() => {
@@ -148,6 +151,47 @@ const NewsDetail: React.FC = () => {
           className="prose prose-lg prose-blue max-w-none prose-img:rounded-xl prose-headings:font-serif prose-headings:text-school-primary"
           dangerouslySetInnerHTML={{ __html: post.content }}
         ></div>
+
+        {/* Files */}
+        {post.files && post.files.length > 0 && (
+          <div className="mt-8 mb-12 border rounded-lg p-4 bg-gray-50">
+            <div 
+              className="flex justify-between items-center cursor-pointer select-none"
+              onClick={() => setShowFiles(!showFiles)}
+            >
+              <h3 className="text-xl font-serif font-bold text-gray-800 flex items-center gap-2">
+                Pliki do pobrania
+                <span className="text-sm font-sans font-normal text-gray-500">({post.files.length})</span>
+              </h3>
+              {showFiles ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
+            </div>
+            
+            {showFiles && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                {post.files.map((fileName, index) => (
+                  <a
+                    key={index}
+                    href={getImageUrl(post.collectionId, post.id, fileName)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all group"
+                  >
+                    <div className="text-school-primary p-2 bg-gray-50 rounded-full shadow-sm group-hover:text-school-accent transition-colors">
+                      {post.file_icons?.[fileName] ? (
+                        <DynamicIcon name={post.file_icons[fileName]} size={20} />
+                      ) : (
+                        <FileText size={20} />
+                      )}
+                    </div>
+                    <span className="font-medium text-gray-700 group-hover:text-gray-900 truncate">
+                      {post.file_names?.[fileName] || fileName}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Gallery */}
         {post.gallery && post.gallery.length > 0 && (

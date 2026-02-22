@@ -1,5 +1,7 @@
 import React from "react";
 import * as Icons from "lucide-react";
+// @ts-ignore
+import { icons } from "lucide-react";
 
 interface DynamicIconProps {
   name: string;
@@ -14,20 +16,37 @@ const DynamicIcon: React.FC<DynamicIconProps> = ({
   className,
   strokeWidth = 2,
 }) => {
-  // @ts-ignore - dynamiczny dostęp do biblioteki ikon
-  const LucideIcon = Icons[name as keyof typeof Icons];
-
-  if (!LucideIcon) {
+  // Check if name is a URL (image)
+  if (name.startsWith("http") || name.startsWith("/")) {
     return (
-      <Icons.HelpCircle
-        size={size}
-        className={className}
-        strokeWidth={strokeWidth}
+      <img
+        src={name}
+        alt="Icon"
+        className={`object-contain ${className}`}
+        style={{ width: size, height: size }}
       />
     );
   }
 
-  // @ts-ignore
+  // Get icon from explicit 'icons' export or fallback to 'Icons' namespace
+  const source = icons || (Icons as any).icons || Icons;
+  const LucideIcon = source[name as keyof typeof source];
+
+  if (!LucideIcon) {
+      // Fallback to HelpCircle
+      const HelpCircle = source["HelpCircle"] || Icons.HelpCircle;
+      if (HelpCircle) {
+        return (
+            <HelpCircle
+                size={size}
+                className={className}
+                strokeWidth={strokeWidth}
+            />
+        );
+      }
+      return null;
+  }
+
   return (
     <LucideIcon size={size} className={className} strokeWidth={strokeWidth} />
   );

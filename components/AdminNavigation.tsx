@@ -4,6 +4,7 @@ import { pb } from "../services/pocketbase";
 import { NavItem, Subpage } from "../lib/types";
 import { Save, AlertCircle } from "lucide-react";
 import { NavigationSource } from "./admin/navigation/NavigationSource";
+import { SocialMediaManager } from "./admin/navigation/SocialMediaManager";
 import { MenuBuilder, TreeItem } from "./admin/navigation/MenuBuilder";
 import { 
     DndContext, 
@@ -404,9 +405,14 @@ const AdminNavigation: React.FC = () => {
                         </div>
                     )}
                 </div>
+
+
             </div>
 
             <div className="lg:w-2/3">
+                <div className="mb-6">
+                    <SocialMediaManager />
+                </div>
                 <div className="bg-gray-50 p-4 rounded-xl min-h-[500px] border-2 border-dashed border-gray-200">
                      {loading ? (
                          <div className="space-y-3 animate-pulse">
