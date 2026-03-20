@@ -10,6 +10,7 @@ import ConfirmationModal from "./ConfirmationModal";
 import { Upload, Trash2, FileText, Link as LinkIcon, X, CheckCircle, ChevronDown, ChevronUp, Pencil, Save as SaveIcon } from "lucide-react";
 import Toast from "./Toast";
 import InputModal from "./InputModal";
+import FileSelectModal from "./FileSelectModal";
 import IconPicker from "./IconPicker";
 import DynamicIcon from "./DynamicIcon";
 
@@ -42,6 +43,8 @@ const AdminSubpageForm: React.FC = () => {
   
    // Modal Input state
   const [isLinkModalOpen, setLinkModalOpen] = useState(false);
+  const [isFileSelectModalOpen, setFileSelectModalOpen] = useState(false);
+  const [fileSelectInitialText, setFileSelectInitialText] = useState("");
   const [linkModalReq, setLinkModalReq] = useState<{ fileName: string } | null>(
     null
   );
@@ -53,6 +56,16 @@ const AdminSubpageForm: React.FC = () => {
   const editorRef = useRef<SunEditorCore>();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+
+  // Nasłuchiwanie na CustomEvent z pluginu SunEditora
+  useEffect(() => {
+    const handleOpenFileSelect = (e: any) => {
+        setFileSelectInitialText(e.detail || "");
+        setFileSelectModalOpen(true);
+    };
+    document.addEventListener("open-file-select-modal", handleOpenFileSelect);
+    return () => document.removeEventListener("open-file-select-modal", handleOpenFileSelect);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -563,6 +576,28 @@ const AdminSubpageForm: React.FC = () => {
                   setOptions={{
                     stickyToolbar: 84,
                     height: "400px",
+                    plugins: [
+                      {
+                        name: 'insertFilePlugin',
+                        display: 'command',
+                        title: 'Wstaw załącznik',
+                        buttonClass: '',
+                        innerHTML: '<div style="display:flex;align-items:center;justify-content:center;background:#4f46e5;color:white;border-radius:4px;padding:2px;margin:2px;border:1px solid #3730a3;" title="Wstaw załącznik"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div>',
+                        add: function (core: any, targetElement: any) {
+                            core.context.insertFilePlugin = { targetButton: targetElement };
+                        },
+                        action: function () {
+                            let selectedText = '';
+                            if (editorRef.current && editorRef.current.core) {
+                                const selection = editorRef.current.core.getSelection();
+                                if (selection) {
+                                    selectedText = selection.toString();
+                                }
+                            }
+                            document.dispatchEvent(new CustomEvent('open-file-select-modal', { detail: selectedText }));
+                        }
+                      }
+                    ] as any,
                     buttonList: [
                       ["undo", "redo"],
                       ["font", "fontSize", "formatBlock"],
@@ -579,7 +614,7 @@ const AdminSubpageForm: React.FC = () => {
                       ["fontColor", "hiliteColor"],
                       ["outdent", "indent"],
                       ["align", "horizontalRule", "list", "lineHeight"],
-                      ["table", "link", "image"],
+                      ["table", "link", "insertFilePlugin", "image"],
                       ["fullScreen", "showBlocks", "codeView"],
                     ],
                   }}
@@ -606,6 +641,22 @@ const AdminSubpageForm: React.FC = () => {
             onCancel={() => setLinkModalOpen(false)}
             confirmText="Wstaw link"
             inputPlaceholder="Np. Pobierz plan lekcji"
+          />
+
+          <FileSelectModal
+            isOpen={isFileSelectModalOpen}
+            title="Wstaw załącznik do treści"
+            files={subpage.files || []}
+            fileNames={subpage.file_names}
+            defaultLabel={fileSelectInitialText}
+            onConfirm={(fileName, label) => {
+              if (!editorRef.current || !subpage.collectionId || !subpage.id) return;
+              const url = getFileUrl(subpage.collectionId, subpage.id, fileName);
+              const linkHtml = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline font-medium">${label}</a>&nbsp;`;
+              editorRef.current.insertHTML(linkHtml);
+              setFileSelectModalOpen(false);
+            }}
+            onCancel={() => setFileSelectModalOpen(false)}
           />
 
           {iconPickerOpen && (
