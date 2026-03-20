@@ -107,3 +107,14 @@ body {
 .prose th {
   font-weight: 600;
 }
+
+/* Wyrównanie tekstu z edytora SunEditor w widokach na stronie */
+.se-text-left, 
+.prose .se-text-left { text-align: left !important; }
+.se-text-center,
+.prose .se-text-center { text-align: center !important; }
+.se-text-right,
+.prose .se-text-right { text-align: right !important; }
+.se-text-justify,
+.prose .se-text-justify { text-align: justify !important; }
+
