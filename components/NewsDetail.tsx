@@ -61,6 +61,31 @@ const NewsDetail: React.FC = () => {
     }).format(date);
   };
 
+  const processContent = (html: string) => {
+      if (!html) return "";
+      let processed = html.replace(
+          /<img\s+([^>]+)>/gi,
+          (match, attributes) => {
+              const hasLoading = /loading=['"]/.test(attributes);
+              const extraAttrs = hasLoading ? '' : 'loading="lazy" decoding="async"';
+              return `<img ${attributes} ${extraAttrs} style="max-width: 100%; height: auto;" />`;
+          }
+      );
+
+      // Auto-fix file links
+      if (post && post.files && post.files.length > 0) {
+          post.files.forEach(fileName => {
+              // Create an escaped version of filename for RegExp
+              const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const regex = new RegExp(`href=["'][^"']*?${escapedFileName}["']`, 'gi');
+              const correctUrl = getImageUrl(post.collectionId, post.id, fileName); // using getImageUrl as it's the alias for getFileUrl in types
+              processed = processed.replace(regex, `href="${correctUrl}"`);
+          });
+      }
+
+      return processed;
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-20 max-w-3xl">
@@ -149,7 +174,7 @@ const NewsDetail: React.FC = () => {
         {/* Content */}
         <div 
           className="prose prose-lg prose-blue max-w-none prose-img:rounded-xl prose-headings:font-serif prose-headings:text-school-primary"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: post ? processContent(post.content) : "" }}
         ></div>
 
         {/* Files */}

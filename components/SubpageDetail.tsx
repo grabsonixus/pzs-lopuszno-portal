@@ -93,7 +93,7 @@ const SubpageDetail: React.FC = () => {
 
   const processContent = (html: string) => {
       if (!html) return "";
-      return html.replace(
+      let processed = html.replace(
           /<img\s+([^>]+)>/gi,
           (match, attributes) => {
               const hasLoading = /loading=['"]/.test(attributes);
@@ -101,6 +101,19 @@ const SubpageDetail: React.FC = () => {
               return `<img ${attributes} ${extraAttrs} style="max-width: 100%; height: auto;" />`;
           }
       );
+
+      // Auto-fix file links
+      if (subpage && subpage.files && subpage.files.length > 0) {
+          subpage.files.forEach(fileName => {
+              // Create an escaped version of filename for RegExp
+              const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const regex = new RegExp(`href=["'][^"']*?${escapedFileName}["']`, 'gi');
+              const correctUrl = getFileUrl(subpage.collectionId, subpage.id, fileName);
+              processed = processed.replace(regex, `href="${correctUrl}"`);
+          });
+      }
+
+      return processed;
   };
 
   // If error, show error state

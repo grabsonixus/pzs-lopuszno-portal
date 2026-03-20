@@ -266,7 +266,7 @@ const AdminNavigation: React.FC = () => {
                  const newSiblingIds = arrayMove(siblingIds, oldLocalIndex, newLocalIndex);
                  // Update orders map
                  const orderMap = new Map<string, number>();
-                 newSiblingIds.forEach((id, idx) => orderMap.set(id, idx));
+                 newSiblingIds.forEach((id, idx) => orderMap.set(id as string, idx));
                  
                  setNavItems(items => items.map(i => {
                      if (orderMap.has(i.id)) return { ...i, order: orderMap.get(i.id)! };
