@@ -62,43 +62,43 @@ const NewsDetail: React.FC = () => {
   };
 
   const processContent = (html: string) => {
-      if (!html) return "";
-      let processed = html.replace(
-          /<img\s+([^>]+)>/gi,
-          (match, attributes) => {
-              const hasLoading = /loading=['"]/.test(attributes);
-              const extraAttrs = hasLoading ? '' : 'loading="lazy" decoding="async"';
-              return `<img ${attributes} ${extraAttrs} style="max-width: 100%; height: auto;" />`;
-          }
-      );
-
-      // Auto-fix file links
-      if (post && post.files && post.files.length > 0) {
-          post.files.forEach(fileName => {
-              // Create an escaped version of filename for RegExp
-              const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-              const regex = new RegExp(`href=["'][^"']*?${escapedFileName}["']`, 'gi');
-              const correctUrl = getImageUrl(post.collectionId, post.id, fileName); // using getImageUrl as it's the alias for getFileUrl in types
-              processed = processed.replace(regex, `href="${correctUrl}"`);
-          });
+    if (!html) return "";
+    let processed = html.replace(
+      /<img\s+([^>]+)>/gi,
+      (match, attributes) => {
+        const hasLoading = /loading=['"]/.test(attributes);
+        const extraAttrs = hasLoading ? '' : 'loading="lazy" decoding="async"';
+        return `<img ${attributes} ${extraAttrs} style="max-width: 100%; height: auto;" />`;
       }
+    );
 
-      return processed;
+    // Auto-fix file links
+    if (post && post.files && post.files.length > 0) {
+      post.files.forEach(fileName => {
+        // Create an escaped version of filename for RegExp
+        const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`href=["'][^"']*?${escapedFileName}["']`, 'gi');
+        const correctUrl = getImageUrl(post.collectionId, post.id, fileName); // using getImageUrl as it's the alias for getFileUrl in types
+        processed = processed.replace(regex, `href="${correctUrl}"`);
+      });
+    }
+
+    return processed;
   };
 
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-20 max-w-3xl">
-         <div className="animate-pulse space-y-4">
-           <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-           <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-           <div className="h-96 bg-gray-200 rounded w-full mt-8"></div>
-           <div className="space-y-2 mt-8">
-             <div className="h-4 bg-gray-200 rounded w-full"></div>
-             <div className="h-4 bg-gray-200 rounded w-full"></div>
-             <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-           </div>
-         </div>
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-96 bg-gray-200 rounded w-full mt-8"></div>
+          <div className="space-y-2 mt-8">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -172,7 +172,7 @@ const NewsDetail: React.FC = () => {
         </header>
 
         {/* Content */}
-        <div 
+        <div
           className="prose prose-lg prose-blue max-w-none prose-img:rounded-xl prose-headings:font-serif prose-headings:text-school-primary"
           dangerouslySetInnerHTML={{ __html: post ? processContent(post.content) : "" }}
         ></div>
@@ -180,7 +180,7 @@ const NewsDetail: React.FC = () => {
         {/* Files */}
         {post.files && post.files.length > 0 && (
           <div className="mt-8 mb-12 border rounded-lg p-4 bg-gray-50">
-            <div 
+            <div
               className="flex justify-between items-center cursor-pointer select-none"
               onClick={() => setShowFiles(!showFiles)}
             >
@@ -190,7 +190,7 @@ const NewsDetail: React.FC = () => {
               </h3>
               {showFiles ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
             </div>
-            
+
             {showFiles && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
                 {post.files.map((fileName, index) => (
@@ -223,15 +223,29 @@ const NewsDetail: React.FC = () => {
           <div className="mt-12">
             <h2 className="text-2xl font-bold mb-6">Galeria</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {post.gallery.map((image, index) => (
-                <a key={index} href={getImageUrl(post.collectionId, post.id, image)} target="_blank" rel="noopener noreferrer">
-                  <img
-                    src={getImageUrl(post.collectionId, post.id, image)}
-                    alt={`${post.title} gallery image ${index + 1}`}
-                    className="w-full h-full object-cover rounded-lg shadow-md hover:opacity-90 transition-opacity"
-                  />
-                </a>
-              ))}
+              {post.gallery.map((fileName, index) => {
+                const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(fileName);
+                const url = getImageUrl(post.collectionId, post.id, fileName);
+                return isVideo ? (
+                  <div key={index} className="relative aspect-video rounded-lg overflow-hidden shadow-md bg-black">
+                    <video
+                      src={url}
+                      className="w-full h-full object-cover"
+                      controls
+                      preload="metadata"
+                    />
+                  </div>
+                ) : (
+                  <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="block aspect-square overflow-hidden rounded-lg shadow-md">
+                    <img
+                      src={url}
+                      alt={`${post.title} – ${index + 1}`}
+                      className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                      loading="lazy"
+                    />
+                  </a>
+                );
+              })}
             </div>
           </div>
         )}

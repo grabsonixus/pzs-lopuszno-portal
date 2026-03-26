@@ -66,6 +66,7 @@ export interface Subpage {
   title: string;
   slug: string;
   content: string;
+  gallery?: string[];
   files?: string[];
   file_icons?: Record<string, string>;
   file_names?: Record<string, string>; // Mapowanie nazwa_pliku -> nazwa_wyświetlana
@@ -192,9 +193,8 @@ export const getImageUrl = (
   thumb?: string
 ) => {
   if (!fileName) return "";
-  let url = `${
-    process.env.PUBLIC_POCKETBASE_URL || "https://api.zsp5lopuszno.pl/"
-  }api/files/${collectionId}/${recordId}/${fileName}`;
+  let url = `${process.env.PUBLIC_POCKETBASE_URL || "https://api.zsp5lopuszno.pl/"
+    }api/files/${collectionId}/${recordId}/${fileName}`;
   if (thumb) {
     url += `?thumb=${thumb}`;
   }

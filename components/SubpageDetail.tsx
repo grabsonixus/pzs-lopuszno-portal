@@ -17,7 +17,7 @@ const SubpageDetail: React.FC = () => {
   const [error, setError] = useState(false);
   const [showFiles, setShowFiles] = useState(false); // Stan widoczności plików
   const { setPageId, setPageType } = useContext(AdminEditContext);
-  
+
   // Track if we are navigating to a new slug to handle transition
   const previousSlug = useRef<string | undefined>(undefined);
 
@@ -26,31 +26,31 @@ const SubpageDetail: React.FC = () => {
 
     // Reset state for new fetch
     if (previousSlug.current !== slug) {
-       // Check cache first
-       if (subpageCache.has(slug)) {
-         setSubpage(subpageCache.get(slug)!);
-         setLoading(false);
-         setError(false);
-       } else {
-         // Only set loading if not in cache
-         setLoading(true);
-         setSubpage(null); 
-         setError(false);
-       }
-       previousSlug.current = slug;
+      // Check cache first
+      if (subpageCache.has(slug)) {
+        setSubpage(subpageCache.get(slug)!);
+        setLoading(false);
+        setError(false);
+      } else {
+        // Only set loading if not in cache
+        setLoading(true);
+        setSubpage(null);
+        setError(false);
+      }
+      previousSlug.current = slug;
     }
 
     const controller = new AbortController();
-    
+
     const fetchSubpage = async () => {
       // If we already have it from cache, we can skip fetch or background update
       // For now, let's just trust cache if present to be instant
       if (subpageCache.has(slug)) {
-          setPageId(subpageCache.get(slug)!.id);
-          setPageType("subpage");
-          setLoading(false); 
-          // Optional: Background re-fetch could go here
-          return;
+        setPageId(subpageCache.get(slug)!.id);
+        setPageType("subpage");
+        setLoading(false);
+        // Optional: Background re-fetch could go here
+        return;
       }
 
       try {
@@ -60,7 +60,7 @@ const SubpageDetail: React.FC = () => {
           .getFirstListItem<Subpage>(`slug="${slug}"`, {
             signal: controller.signal,
           });
-          
+
         if (!controller.signal.aborted) {
           subpageCache.set(slug, result); // Save to cache
           setSubpage(result);
@@ -92,28 +92,28 @@ const SubpageDetail: React.FC = () => {
   }, [slug, setPageId, setPageType]);
 
   const processContent = (html: string) => {
-      if (!html) return "";
-      let processed = html.replace(
-          /<img\s+([^>]+)>/gi,
-          (match, attributes) => {
-              const hasLoading = /loading=['"]/.test(attributes);
-              const extraAttrs = hasLoading ? '' : 'loading="lazy" decoding="async"';
-              return `<img ${attributes} ${extraAttrs} style="max-width: 100%; height: auto;" />`;
-          }
-      );
-
-      // Auto-fix file links
-      if (subpage && subpage.files && subpage.files.length > 0) {
-          subpage.files.forEach(fileName => {
-              // Create an escaped version of filename for RegExp
-              const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-              const regex = new RegExp(`href=["'][^"']*?${escapedFileName}["']`, 'gi');
-              const correctUrl = getFileUrl(subpage.collectionId, subpage.id, fileName);
-              processed = processed.replace(regex, `href="${correctUrl}"`);
-          });
+    if (!html) return "";
+    let processed = html.replace(
+      /<img\s+([^>]+)>/gi,
+      (match, attributes) => {
+        const hasLoading = /loading=['"]/.test(attributes);
+        const extraAttrs = hasLoading ? '' : 'loading="lazy" decoding="async"';
+        return `<img ${attributes} ${extraAttrs} style="max-width: 100%; height: auto;" />`;
       }
+    );
 
-      return processed;
+    // Auto-fix file links
+    if (subpage && subpage.files && subpage.files.length > 0) {
+      subpage.files.forEach(fileName => {
+        // Create an escaped version of filename for RegExp
+        const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`href=["'][^"']*?${escapedFileName}["']`, 'gi');
+        const correctUrl = getFileUrl(subpage.collectionId, subpage.id, fileName);
+        processed = processed.replace(regex, `href="${correctUrl}"`);
+      });
+    }
+
+    return processed;
   };
 
   // If error, show error state
@@ -146,10 +146,10 @@ const SubpageDetail: React.FC = () => {
       <div className="relative bg-school-primary text-white overflow-hidden transition-all duration-300">
         {/* Dekoracyjne tło */}
         <div className="absolute inset-0 z-0">
-            <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white opacity-5 blur-3xl"></div>
-            <div className="absolute top-1/2 -left-24 w-64 h-64 rounded-full bg-school-accent opacity-10 blur-3xl"></div>
-             {/* Subtelny wzór kropkowany */}
-             <div className="absolute inset-0 bg-[radial-gradient(#ffffff1a_1px,transparent_1px)] [background-size:20px_20px]"></div>
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white opacity-5 blur-3xl"></div>
+          <div className="absolute top-1/2 -left-24 w-64 h-64 rounded-full bg-school-accent opacity-10 blur-3xl"></div>
+          {/* Subtelny wzór kropkowany */}
+          <div className="absolute inset-0 bg-[radial-gradient(#ffffff1a_1px,transparent_1px)] [background-size:20px_20px]"></div>
         </div>
 
         <div className="relative container mx-auto px-4 pt-20 pb-32 max-w-5xl z-10 text-center">
@@ -172,11 +172,11 @@ const SubpageDetail: React.FC = () => {
           </nav>
 
           <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight tracking-tight drop-shadow-sm min-h-[1.2em]">
-             {loading && !subpage ? (
-                 <div className="w-2/3 mx-auto h-12 bg-white/20 animate-pulse rounded"></div>
-             ) : (
-                 subpage?.title
-             )}
+            {loading && !subpage ? (
+              <div className="w-2/3 mx-auto h-12 bg-white/20 animate-pulse rounded"></div>
+            ) : (
+              subpage?.title
+            )}
           </h1>
 
           {/* Ozdobna linia */}
@@ -187,62 +187,93 @@ const SubpageDetail: React.FC = () => {
       {/* Content Container - Always visible */}
       <div className="container mx-auto px-4 pb-20 max-w-4xl relative z-20 -mt-20">
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 md:p-12 min-h-[300px]">
-           {loading && !subpage ? (
-               // Content Skeleton
-               <div className="space-y-4 animate-pulse">
-                   <div className="h-4 bg-gray-200 rounded w-full"></div>
-                   <div className="h-4 bg-gray-200 rounded w-full"></div>
-                   <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                   <div className="h-48 bg-gray-200 rounded-xl w-full my-8"></div>
-                   <div className="h-4 bg-gray-200 rounded w-full"></div>
-                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-               </div>
-           ) : (
-               // Actual Content
-               <div
-                className="prose prose-lg prose-blue max-w-none prose-img:rounded-xl prose-headings:font-serif prose-headings:text-school-primary prose-a:text-school-primary hover:prose-a:text-blue-800 animate-fade-in"
-                dangerouslySetInnerHTML={{ __html: subpage ? processContent(subpage.content) : "" }}
-              ></div>
-           )}
-        {subpage && subpage.files && subpage.files.length > 0 && (
-          <div className="mt-8 mb-12 border rounded-lg p-4 bg-gray-50">
-            <div 
-              className="flex justify-between items-center cursor-pointer select-none"
-              onClick={() => setShowFiles(!showFiles)}
-            >
-              <h3 className="text-xl font-serif font-bold text-gray-800 flex items-center gap-2">
-                Pliki do pobrania
-                <span className="text-sm font-sans font-normal text-gray-500">({subpage.files.length})</span>
-              </h3>
-              {showFiles ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
+          {loading && !subpage ? (
+            // Content Skeleton
+            <div className="space-y-4 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              <div className="h-48 bg-gray-200 rounded-xl w-full my-8"></div>
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
             </div>
-
-            {showFiles && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                {subpage.files.map((fileName, index) => (
-                  <a
-                    key={index}
-                    href={getFileUrl(subpage.collectionId, subpage.id, fileName)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all group"
-                  >
-                    <div className="text-school-primary p-2 bg-gray-50 rounded-full shadow-sm group-hover:text-school-accent transition-colors">
-                      {subpage.file_icons?.[fileName] ? (
-                        <DynamicIcon name={subpage.file_icons[fileName]} size={20} />
-                      ) : (
-                        <FileText size={20} />
-                      )}
-                    </div>
-                    <span className="font-medium text-gray-700 group-hover:text-gray-900 truncate">
-                      {subpage.file_names?.[fileName] || fileName}
-                    </span>
-                  </a>
-                ))}
+          ) : (
+            // Actual Content
+            <div
+              className="prose prose-lg prose-blue max-w-none prose-img:rounded-xl prose-headings:font-serif prose-headings:text-school-primary prose-a:text-school-primary hover:prose-a:text-blue-800 animate-fade-in"
+              dangerouslySetInnerHTML={{ __html: subpage ? processContent(subpage.content) : "" }}
+            ></div>
+          )}
+          {subpage && subpage.files && subpage.files.length > 0 && (
+            <div className="mt-8 mb-12 border rounded-lg p-4 bg-gray-50">
+              <div
+                className="flex justify-between items-center cursor-pointer select-none"
+                onClick={() => setShowFiles(!showFiles)}
+              >
+                <h3 className="text-xl font-serif font-bold text-gray-800 flex items-center gap-2">
+                  Pliki do pobrania
+                  <span className="text-sm font-sans font-normal text-gray-500">({subpage.files.length})</span>
+                </h3>
+                {showFiles ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
               </div>
-            )}
-          </div>
-        )}
+
+              {showFiles && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {subpage.files.map((fileName, index) => (
+                    <a
+                      key={index}
+                      href={getFileUrl(subpage.collectionId, subpage.id, fileName)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all group"
+                    >
+                      <div className="text-school-primary p-2 bg-gray-50 rounded-full shadow-sm group-hover:text-school-accent transition-colors">
+                        {subpage.file_icons?.[fileName] ? (
+                          <DynamicIcon name={subpage.file_icons[fileName]} size={20} />
+                        ) : (
+                          <FileText size={20} />
+                        )}
+                      </div>
+                      <span className="font-medium text-gray-700 group-hover:text-gray-900 truncate">
+                        {subpage.file_names?.[fileName] || fileName}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {/* Gallery */}
+          {subpage && subpage.gallery && subpage.gallery.length > 0 && (
+            <div className="mt-10">
+              <h3 className="text-2xl font-serif font-bold text-gray-800 mb-6">Galeria</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {subpage.gallery.map((fileName, index) => {
+                  const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(fileName);
+                  const url = getFileUrl(subpage.collectionId, subpage.id, fileName);
+                  return isVideo ? (
+                    <div key={index} className="relative aspect-video rounded-lg overflow-hidden shadow-md bg-black">
+                      <video
+                        src={url}
+                        className="w-full h-full object-cover"
+                        controls
+                        preload="metadata"
+                      />
+                    </div>
+                  ) : (
+                    <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="block aspect-square overflow-hidden rounded-lg shadow-md">
+                      <img
+                        src={url}
+                        alt={`Galeria – ${index + 1}`}
+                        className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                        loading="lazy"
+                      />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </article>
