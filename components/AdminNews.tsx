@@ -23,9 +23,11 @@ const AdminNews: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    pb.collection("categories").getFullList<Category>({ sort: "name" })
+    pb.collection("categories").getFullList<Category>({ sort: "name", requestKey: null })
         .then(setCategories)
-        .catch(console.error);
+        .catch((err) => {
+            if (!err.isAbort) console.error(err);
+        });
   }, []);
 
   // Debounce search
@@ -67,6 +69,7 @@ const AdminNews: React.FC = () => {
         fields: "id,title,date,created,published", // OPTYMALIZACJA
         filter: filterRule,
         signal,
+        requestKey: null,
       });
       
       if (!signal?.aborted) {

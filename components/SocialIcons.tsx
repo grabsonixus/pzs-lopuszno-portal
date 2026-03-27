@@ -12,6 +12,7 @@ export const SocialIcons: React.FC<{ className?: string }> = ({ className }) => 
         const records = await pb.collection("social_links").getFullList<SocialLink>({
           sort: "order",
           filter: "is_active = true",
+          requestKey: null,
         });
         setLinks(records);
       } catch (error) {

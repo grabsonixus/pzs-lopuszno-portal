@@ -51,7 +51,8 @@ const AdminNavigation: React.FC = () => {
       try {
         const pagesResult = await pb.collection("subpages").getFullList<Subpage>({ 
              sort: "title",
-             fields: "id,title,slug" 
+             fields: "id,title,slug",
+             requestKey: null,
         });
         setSubpages(pagesResult.map(p => ({ id: p.id, title: p.title, slug: p.slug })));
       } catch (err) {
@@ -61,7 +62,7 @@ const AdminNavigation: React.FC = () => {
 
       // 2. Pobierz menu
       try {
-        const navResult = await pb.collection("navigation_items").getFullList<NavItem>({ sort: "order" });
+        const navResult = await pb.collection("navigation_items").getFullList<NavItem>({ sort: "order", requestKey: null });
         setNavItems(navResult);
       } catch (err: any) {
          // 404 means empty list usually in PocketBase if not found, but getFullList returns empty array.

@@ -34,11 +34,17 @@ const AdminSubpageForm: React.FC = () => {
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [currentFileForIcon, setCurrentFileForIcon] = useState<string | null>(null);
 
+  // Upload Progress
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const MAX_FILE_SIZE = 104857600; // 100 MB in bytes
+
   // Stan edycji nazwy pliku
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [tempFileName, setTempFileName] = useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isSuccess, setIsSuccess] = useState(false); // Stan do koloru przycisku
@@ -73,7 +79,7 @@ const AdminSubpageForm: React.FC = () => {
   useEffect(() => {
     const controller = new AbortController();
     if (id) {
-      setLoading(true);
+      setIsLoading(true);
       setError("");
       pb.collection("subpages")
         .getOne<Subpage>(id, { signal: controller.signal })
@@ -108,7 +114,7 @@ const AdminSubpageForm: React.FC = () => {
         })
         .finally(() => {
           if (!controller.signal.aborted) {
-            setLoading(false);
+            setIsLoading(false);
           }
         });
     }
@@ -222,7 +228,7 @@ const AdminSubpageForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSaving(true);
     setError("");
     setSuccess("");
 
@@ -264,9 +270,38 @@ const AdminSubpageForm: React.FC = () => {
       formData.append("gallery", file);
     });
 
+    // Walidacja rozmiaru plików
+    const allNewFiles = [
+      ...newGalleryFiles,
+      ...newFiles
+    ];
+
+    const oversizedFiles = allNewFiles.filter(file => file.size > MAX_FILE_SIZE);
+    if (oversizedFiles.length > 0) {
+      const fileNames = oversizedFiles.map(f => f.name).join(", ");
+      setError(`Następujące pliki przekraczają limit 100MB: ${fileNames}`);
+      setIsSaving(false);
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    // Symulacja paska postępu
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 95) return prev;
+        const remaining = 95 - prev;
+        const increment = Math.max(1, Math.floor(remaining / 10));
+        return prev + increment;
+      });
+    }, 500);
+
     try {
       if (id) {
         const updatedRecord = await pb.collection("subpages").update<Subpage>(id, formData);
+        clearInterval(progressInterval);
+        setUploadProgress(100);
         setSubpage(prev => ({
           ...prev,
           files: (updatedRecord as any)[fileFieldName] || [],
@@ -281,6 +316,8 @@ const AdminSubpageForm: React.FC = () => {
         setTimeout(() => setIsSuccess(false), 2000);
       } else {
         const newRecord = await pb.collection("subpages").create<Subpage>(formData);
+        clearInterval(progressInterval);
+        setUploadProgress(100);
         setSubpage(newRecord);
         setNewFiles([]);
         setFilesToDelete([]);
@@ -289,10 +326,13 @@ const AdminSubpageForm: React.FC = () => {
         navigate(`/admin/subpages/edit/${newRecord.id}`);
       }
     } catch (err) {
+      clearInterval(progressInterval);
       console.error("Error saving subpage:", err);
       setError("Nie udało się zapisać podstrony.");
     } finally {
-      setLoading(false);
+      setIsSaving(false);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -309,7 +349,7 @@ const AdminSubpageForm: React.FC = () => {
     setCancelModalOpen(false);
   };
 
-  if (loading && id) {
+  if (isLoading && id) {
     return (
       <div className="container mx-auto p-4 max-w-6xl grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-8 items-start animate-pulse">
         <main>
@@ -405,9 +445,12 @@ const AdminSubpageForm: React.FC = () => {
               onClick={() => setShowFilesSection(!showFilesSection)}
             >
               <div className="flex items-center gap-2">
-                <label className="block text-sm font-medium text-gray-700 cursor-pointer">
-                  Pliki do pobrania
-                </label>
+                <div className="flex flex-col">
+                  <label className="block text-sm font-medium text-gray-700 cursor-pointer">
+                    Pliki do pobrania
+                  </label>
+                  <p className="text-[10px] text-gray-500">Maksymalnie 100MB na plik.</p>
+                </div>
                 {showFilesSection ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-500" />}
               </div>
 
@@ -703,21 +746,32 @@ const AdminSubpageForm: React.FC = () => {
           <button
             type="submit"
             form="subpage-form"
-            disabled={loading}
-            className={`w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition-all flex justify-center items-center gap-2 ${isSuccess
+            disabled={isSaving}
+            className={`w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition-all flex flex-col justify-center items-center gap-1 ${isSuccess
               ? "bg-green-600 hover:bg-green-700 ring-green-500"
               : "bg-indigo-600 hover:bg-indigo-700"
               }`}
           >
-            {loading ? (
-              "Zapisywanie..."
-            ) : isSuccess ? (
-              <>
-                <CheckCircle size={18} />
-                Zapisano!
-              </>
-            ) : (
-              "Zapisz"
+            <div className="flex items-center gap-2">
+                {isSaving ? (
+                isUploading ? `Przesyłanie ${uploadProgress}%...` : "Zapisywanie..."
+                ) : isSuccess ? (
+                <>
+                    <CheckCircle size={18} />
+                    Zapisano!
+                </>
+                ) : (
+                "Zapisz"
+                )}
+            </div>
+
+            {isUploading && uploadProgress > 0 && (
+                <div className="w-full bg-indigo-800/30 rounded-full h-1 mt-1 overflow-hidden">
+                    <div 
+                        className="bg-white h-full transition-all duration-300 ease-out" 
+                        style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                </div>
             )}
           </button>
           <button

@@ -47,7 +47,7 @@ const AdminSettingsForm: React.FC = () => {
     try {
       const result = await pb
         .collection("site_settings")
-        .getList<SiteSettings>(1, 1);
+        .getList<SiteSettings>(1, 1, { requestKey: null });
       if (result.items.length > 0) {
         const item = result.items[0];
         setSettings(item);

@@ -123,6 +123,7 @@ export const SocialMediaManager: React.FC = () => {
             setLoading(true);
             const records = await pb.collection('social_links').getFullList<SocialLink>({
                 sort: 'order',
+                requestKey: null,
             });
             setLinks(records);
             setError(null);

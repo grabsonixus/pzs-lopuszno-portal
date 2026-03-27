@@ -25,6 +25,7 @@ const AdminDashboard: React.FC = () => {
       try {
         const result = await pb.collection("system_updates").getList<SystemUpdate>(1, 5, {
           sort: "-date",
+          requestKey: null,
         });
         setUpdates(result.items);
         if (result.items.length > 0) {

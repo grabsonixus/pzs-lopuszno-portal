@@ -177,7 +177,7 @@ const Footer: React.FC = () => {
                 href="https://www.perfektus.edu.pl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="hover:underline font-medium"
+                className="hover:underline font-medium"
               >
                 Perfektus System Sp. z o.o.
               </a>

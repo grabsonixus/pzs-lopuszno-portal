@@ -25,6 +25,7 @@ const AdminSubpages: React.FC = () => {
         sort: '-created',
         fields: 'id,title,created', // OPTYMALIZACJA
         signal,
+        requestKey: null,
       });
       if (!signal?.aborted) {
         setSubpages(result.items);

@@ -45,7 +45,8 @@ const AdminNewsForm: React.FC = () => {
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isSuccess, setIsSuccess] = useState(false); // Color state
@@ -62,6 +63,11 @@ const AdminNewsForm: React.FC = () => {
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [currentFileForIcon, setCurrentFileForIcon] = useState<string | null>(null);
 
+  // Upload Progress
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const MAX_FILE_SIZE = 104857600; // 100 MB in bytes
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null); // Ref dla inputa plików
   const editorRef = useRef<SunEditorCore>(); // Ref dla edytora
@@ -71,12 +77,18 @@ const AdminNewsForm: React.FC = () => {
   // Funkcja pomocnicza do formatowania daty z PocketBase (UTC) na format inputa (lokalny YYYY-MM-DDThh:mm)
   const formatDateForInput = (dateString: string) => {
     if (!dateString) return "";
-    const date = new Date(dateString);
-    // Przesunięcie strefy czasowej w minutach, konwersja na milisekundy
-    // Odejmujemy offset, ponieważ getTimezoneOffset zwraca minuty różnicy (np. -120 dla GMT+2)
-    const offset = date.getTimezoneOffset() * 60000;
-    const localDate = new Date(date.getTime() - offset);
-    return localDate.toISOString().slice(0, 16);
+    try {
+      // PocketBase dates often come with a space instead of T
+      const normalizedDate = dateString.replace(' ', 'T');
+      const date = new Date(normalizedDate);
+      if (isNaN(date.getTime())) return "";
+      
+      const offset = date.getTimezoneOffset() * 60000;
+      const localDate = new Date(date.getTime() - offset);
+      return localDate.toISOString().slice(0, 16);
+    } catch (e) {
+      return "";
+    }
   };
 
   // Field name detection
@@ -95,7 +107,7 @@ const AdminNewsForm: React.FC = () => {
   useEffect(() => {
     const controller = new AbortController();
     if (id) {
-      setLoading(true);
+      setIsLoading(true);
       setError("");
       pb.collection("posts")
         .getOne<Post>(id, { signal: controller.signal })
@@ -137,7 +149,7 @@ const AdminNewsForm: React.FC = () => {
         })
         .finally(() => {
           if (!controller.signal.aborted) {
-            setLoading(false);
+            setIsLoading(false);
           }
         });
     } else {
@@ -158,9 +170,11 @@ const AdminNewsForm: React.FC = () => {
   // Pobieranie kategorii
   useEffect(() => {
     pb.collection("categories")
-      .getFullList<Category>({ sort: "name" })
+      .getFullList<Category>({ sort: "name", requestKey: null })
       .then(setCategories)
-      .catch((err) => console.error("Error fetching categories:", err));
+      .catch((err) => {
+        if (!err.isAbort) console.error("Error fetching categories:", err);
+      });
   }, []);
 
   // Sprzątanie adresów URL blobów
@@ -362,7 +376,7 @@ const AdminNewsForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSaving(true);
     setError("");
     setSuccess("");
 
@@ -422,9 +436,40 @@ const AdminNewsForm: React.FC = () => {
       formData.append("file_names", JSON.stringify(post.file_names));
     }
 
+    // Walidacja rozmiaru plików
+    const allNewFiles = [
+      ...(coverImageFile ? [coverImageFile] : []),
+      ...newGalleryFiles,
+      ...newFiles
+    ];
+
+    const oversizedFiles = allNewFiles.filter(file => file.size > MAX_FILE_SIZE);
+    if (oversizedFiles.length > 0) {
+      const fileNames = oversizedFiles.map(f => f.name).join(", ");
+      setError(`Następujące pliki przekraczają limit 100MB: ${fileNames}`);
+      setIsSaving(false);
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    // Symulacja paska postępu (ponieważ JS SDK nie obsługuje natywnie onSendProgress przez fetch)
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 95) return prev;
+        const remaining = 95 - prev;
+        const increment = Math.max(1, Math.floor(remaining / 10)); // Zwalniamy pod koniec
+        return prev + increment;
+      });
+    }, 500);
+
     try {
       if (id) {
         const updatedRecord = await pb.collection("posts").update<Post>(id, formData);
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+        
         setPost(prev => ({
           ...prev,
           files: (updatedRecord as any)[fileFieldName] || [], // Use detected field
@@ -439,6 +484,8 @@ const AdminNewsForm: React.FC = () => {
         setTimeout(() => setIsSuccess(false), 2000);
       } else {
         const newRecord = await pb.collection("posts").create<Post>(formData);
+        clearInterval(progressInterval);
+        setUploadProgress(100);
 
         // Detect field for new record if not already detected (though create implies 'files' usually, but good to be safe if backend changes)
         // For new records, we might want to check what came back. 
@@ -458,10 +505,13 @@ const AdminNewsForm: React.FC = () => {
         navigate(`/admin/news/edit/${newRecord.id}`);
       }
     } catch (err) {
+      clearInterval(progressInterval);
       console.error("Error saving post:", err);
       setError("Nie udało się zapisać artykułu.");
     } finally {
-      setLoading(false);
+      setIsSaving(false);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -478,7 +528,7 @@ const AdminNewsForm: React.FC = () => {
     setCancelModalOpen(false);
   };
 
-  if (loading && id) {
+  if (isLoading && id) {
     return (
       <div className="container mx-auto p-4 max-w-6xl grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-8 items-start animate-pulse">
         <main>
@@ -645,7 +695,7 @@ const AdminNewsForm: React.FC = () => {
                         hover:file:bg-indigo-100"
                 />
                 <p className="mt-2 text-xs text-gray-500">
-                  Zalecany format: JPG, PNG. Max 5MB.
+                  Zalecany format: JPG, PNG. Max 100MB.
                 </p>
               </div>
             </div>
@@ -669,9 +719,12 @@ const AdminNewsForm: React.FC = () => {
               onClick={() => setShowFilesSection(!showFilesSection)}
             >
               <div className="flex items-center gap-2">
-                <label className="block text-sm font-medium text-gray-700 cursor-pointer">
-                  Pliki do pobrania (PDF, DOCX itp.)
-                </label>
+                <div className="flex flex-col">
+                  <label className="block text-sm font-medium text-gray-700 cursor-pointer">
+                    Pliki do pobrania (PDF, DOCX itp.)
+                  </label>
+                  <p className="text-[10px] text-gray-500">Maksymalnie 100MB na plik.</p>
+                </div>
                 {showFilesSection ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-500" />}
               </div>
 
@@ -968,21 +1021,32 @@ const AdminNewsForm: React.FC = () => {
           <button
             type="submit"
             form="news-form"
-            disabled={loading}
-            className={`w-full px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all flex justify-center items-center gap-2 ${isSuccess
+            disabled={isSaving}
+            className={`w-full px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all flex flex-col justify-center items-center gap-1 ${isSuccess
                 ? "bg-green-600 hover:bg-green-700 ring-green-500"
                 : "bg-indigo-600 hover:bg-indigo-700"
               }`}
           >
-            {loading ? (
-              "Zapisywanie..."
-            ) : isSuccess ? (
-              <>
-                <CheckCircle size={18} />
-                Zapisano!
-              </>
-            ) : (
-              "Zapisz zmiany"
+            <div className="flex items-center gap-2">
+                {isSaving ? (
+                isUploading ? `Przesyłanie ${uploadProgress}%...` : "Zapisywanie..."
+                ) : isSuccess ? (
+                <>
+                    <CheckCircle size={18} />
+                    Zapisano!
+                </>
+                ) : (
+                "Zapisz zmiany"
+                )}
+            </div>
+            
+            {isUploading && uploadProgress > 0 && (
+                <div className="w-full bg-indigo-800/30 rounded-full h-1.5 mt-1 overflow-hidden">
+                    <div 
+                        className="bg-white h-full transition-all duration-300 ease-out" 
+                        style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                </div>
             )}
           </button>
           <button

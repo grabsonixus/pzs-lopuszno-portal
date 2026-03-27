@@ -49,7 +49,7 @@ const AdminHomeForm: React.FC = () => {
     try {
       const result = await pb
         .collection("home_settings")
-        .getList<HomeSettings>(1, 1);
+        .getList<HomeSettings>(1, 1, { requestKey: null });
       if (result.items.length > 0) {
         setSettings(result.items[0]);
         if (result.items[0].hero_bg) {

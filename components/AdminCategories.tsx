@@ -24,6 +24,7 @@ const AdminCategories: React.FC = () => {
       setLoading(true);
       const result = await pb.collection("categories").getFullList<Category>({
         sort: "name",
+        requestKey: null,
       });
       setCategories(result);
     } catch (err) {

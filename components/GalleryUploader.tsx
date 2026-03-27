@@ -65,9 +65,12 @@ const GalleryUploader: React.FC<GalleryUploaderProps> = ({
     return (
         <div className="border-t pt-6">
             <div className="flex justify-between items-center mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                    Galeria (zdjęcia i wideo)
-                </label>
+                <div className="flex flex-col">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Galeria (zdjęcia i wideo)
+                    </label>
+                    <p className="text-[10px] text-gray-500">Maksymalnie 100MB na plik.</p>
+                </div>
                 <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
