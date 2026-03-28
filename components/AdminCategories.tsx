@@ -5,6 +5,7 @@ import { Plus, Trash2, Edit2, Loader } from "lucide-react";
 import InputModal from "./InputModal";
 import ConfirmationModal from "./ConfirmationModal";
 import Toast from "./Toast";
+import { generateBaseSlug, ensureUniqueSlug } from "../lib/slugUtils";
 
 const AdminCategories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -36,21 +37,15 @@ const AdminCategories: React.FC = () => {
   };
 
   const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/ł/g, "l")
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    return generateBaseSlug(name);
   };
 
   const handleAddCategory = async (name: string) => {
     try {
       setError("");
-      const slug = generateSlug(name);
-      await pb.collection("categories").create({ name, slug });
+      const baseSlug = generateSlug(name);
+      const uniqueSlug = await ensureUniqueSlug("categories", baseSlug);
+      await pb.collection("categories").create({ name, slug: uniqueSlug });
       setSuccess("Kategoria została dodana.");
       setAddModalOpen(false);
       fetchCategories();
@@ -64,8 +59,9 @@ const AdminCategories: React.FC = () => {
     if (!editCategory) return;
     try {
       setError("");
-      const slug = generateSlug(name);
-      await pb.collection("categories").update(editCategory.id, { name, slug });
+      const baseSlug = generateSlug(name);
+      const uniqueSlug = await ensureUniqueSlug("categories", baseSlug, editCategory.id);
+      await pb.collection("categories").update(editCategory.id, { name, slug: uniqueSlug });
       setSuccess("Kategoria została zaktualizowana.");
       setEditCategory(null);
       fetchCategories();

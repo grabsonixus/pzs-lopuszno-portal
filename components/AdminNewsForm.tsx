@@ -15,6 +15,7 @@ import { AdminEditContext } from '../lib/AdminEditContext';
 import DynamicIcon from "./DynamicIcon";
 import FileSelectModal from './FileSelectModal';
 import GalleryUploader from './GalleryUploader';
+import { generateBaseSlug, ensureUniqueSlug } from "../lib/slugUtils";
 
 const AdminNewsForm: React.FC = () => {
   const [post, setPost] = useState<Partial<Post>>({
@@ -187,14 +188,7 @@ const AdminNewsForm: React.FC = () => {
   }, [newGalleryFiles]);
 
   const generateSlug = useCallback((title: string) => {
-    return title
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/ł/g, "l")
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    return generateBaseSlug(title);
   }, []);
 
   const handleChange = (
@@ -381,8 +375,17 @@ const AdminNewsForm: React.FC = () => {
     setSuccess("");
 
     const formData = new FormData();
+    
+    // Zapewniamy unikalność sluga przed zapisem
+    const uniqueSlug = await ensureUniqueSlug(
+      "posts", 
+      post.slug || generateBaseSlug(post.title || ""), 
+      id, 
+      post.date
+    );
+    
     formData.append("title", post.title || "");
-    formData.append("slug", post.slug || "");
+    formData.append("slug", uniqueSlug);
     formData.append("content", post.content || "");
     formData.append("published", String(post.published || false));
     if (post.category) {
@@ -413,7 +416,7 @@ const AdminNewsForm: React.FC = () => {
     }
 
     newGalleryFiles.forEach((file) => {
-      formData.append("gallery", file);
+      formData.append("gallery+", file);
     });
 
     // Obsługa plików (dokumentów) - tylko NOWE pliki i USUNIĘTE

@@ -14,6 +14,7 @@ import FileSelectModal from "./FileSelectModal";
 import IconPicker from "./IconPicker";
 import DynamicIcon from "./DynamicIcon";
 import GalleryUploader from "./GalleryUploader";
+import { generateBaseSlug, ensureUniqueSlug } from "../lib/slugUtils";
 
 const AdminSubpageForm: React.FC = () => {
   const [subpage, setSubpage] = useState<Partial<Subpage>>({
@@ -125,21 +126,7 @@ const AdminSubpageForm: React.FC = () => {
   }, [id]);
 
   const generateSlug = useCallback((title: string) => {
-    return title
-
-      .toLowerCase()
-
-      .normalize("NFD")
-
-      .replace(/[\u0300-\u036f]/g, "")
-
-      .replace(/ł/g, "l")
-
-      .replace(/[^\w\s-]/g, "")
-
-      .replace(/[\s_-]+/g, "-")
-
-      .replace(/^-+|-+$/g, "");
+    return generateBaseSlug(title);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,8 +220,16 @@ const AdminSubpageForm: React.FC = () => {
     setSuccess("");
 
     const formData = new FormData();
+    
+    // Zapewniamy unikalność sluga przed zapisem
+    const uniqueSlug = await ensureUniqueSlug(
+      "subpages", 
+      subpage.slug || generateBaseSlug(subpage.title || ""), 
+      id
+    );
+
     formData.append("title", subpage.title || "");
-    formData.append("slug", subpage.slug || "");
+    formData.append("slug", uniqueSlug);
     formData.append("content", subpage.content || "");
 
     // Obsługa plików (dokumentów) - tylko NOWE pliki i USUNIĘTE
@@ -267,7 +262,7 @@ const AdminSubpageForm: React.FC = () => {
       });
     }
     newGalleryFiles.forEach((file) => {
-      formData.append("gallery", file);
+      formData.append("gallery+", file);
     });
 
     // Walidacja rozmiaru plików

@@ -6,6 +6,7 @@ import { Subpage, getFileUrl } from "../lib/types";
 import DynamicIcon from "./DynamicIcon";
 import { ArrowLeft, Home, ChevronRight, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { AdminEditContext } from "../lib/AdminEditContext";
+import MediaLightbox from "./MediaLightbox";
 
 // Simple in-memory cache
 const subpageCache = new Map<string, Subpage>();
@@ -16,6 +17,7 @@ const SubpageDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [showFiles, setShowFiles] = useState(false); // Stan widoczności plików
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null); // Index dla lightboxa
   const { setPageId, setPageType } = useContext(AdminEditContext);
 
   // Track if we are navigating to a new slug to handle transition
@@ -251,24 +253,36 @@ const SubpageDetail: React.FC = () => {
                 {subpage.gallery.map((fileName, index) => {
                   const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(fileName);
                   const url = getFileUrl(subpage.collectionId, subpage.id, fileName);
-                  return isVideo ? (
-                    <div key={index} className="relative aspect-video rounded-lg overflow-hidden shadow-md bg-black">
-                      <video
-                        src={url}
-                        className="w-full h-full object-cover"
-                        controls
-                        preload="metadata"
-                      />
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className="relative aspect-square rounded-lg overflow-hidden shadow-md bg-gray-100 cursor-pointer group"
+                      onClick={() => setLightboxIndex(index)}
+                    >
+                      {isVideo ? (
+                        <>
+                          <video
+                            src={url}
+                            className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all"
+                            preload="metadata"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
+                            <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center text-white border border-white/40 group-hover:scale-110 transition-transform">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <img
+                          src={url}
+                          alt={`Galeria – ${index + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-school-primary/0 group-hover:bg-school-primary/10 transition-colors"></div>
                     </div>
-                  ) : (
-                    <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="block aspect-square overflow-hidden rounded-lg shadow-md">
-                      <img
-                        src={url}
-                        alt={`Galeria – ${index + 1}`}
-                        className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-                        loading="lazy"
-                      />
-                    </a>
                   );
                 })}
               </div>
@@ -276,6 +290,17 @@ const SubpageDetail: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Media Lightbox */}
+      {lightboxIndex !== null && subpage && subpage.gallery && (
+        <MediaLightbox
+          items={subpage.gallery}
+          initialIndex={lightboxIndex}
+          collectionId={subpage.collectionId}
+          recordId={subpage.id}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
     </article>
   );
 };
