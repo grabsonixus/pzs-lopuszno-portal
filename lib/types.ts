@@ -150,6 +150,8 @@ export interface FooterLink {
   label: string;
   url: string;
   icon?: string;
+  is_file?: boolean;
+  file_name?: string;
 }
 
 export interface FooterBlockData {
@@ -193,8 +195,15 @@ export const getImageUrl = (
   thumb?: string
 ) => {
   if (!fileName) return "";
-  let url = `${process.env.PUBLIC_POCKETBASE_URL || "https://api.zsp5lopuszno.pl/"
-    }api/files/${collectionId}/${recordId}/${fileName}`;
+
+  // Próba odczytu z wielu źródeł środowiskowych (Vite + fallback)
+  // @ts-ignore
+  const baseUrl = (import.meta.env?.VITE_PUBLIC_POCKETBASE_URL) || 
+                  "https://api.zsp5lopuszno.pl/";
+                  
+  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+  
+  let url = `${cleanBaseUrl}api/files/${collectionId}/${recordId}/${fileName}`;
   if (thumb) {
     url += `?thumb=${thumb}`;
   }

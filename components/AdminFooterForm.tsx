@@ -267,6 +267,7 @@ const AdminFooterForm: React.FC = () => {
       return;
     }
     try {
+      setIsLoading(true);
       const formData = new FormData();
       formData.append("files", file);
       const record = await pb
@@ -278,11 +279,44 @@ const AdminFooterForm: React.FC = () => {
           : null;
       if (fileName) {
         const url = getImageUrl(record.collectionId, record.id, fileName);
-        updateLink(idx, "url", url);
+        
+        // Aktualizacja linku o URL i metadane pliku
+        if (editingBlock) {
+          const newBlock = { ...editingBlock.block };
+          if (newBlock.data.links) {
+            const newLinks = [...newBlock.data.links];
+            newLinks[idx] = { 
+              ...newLinks[idx], 
+              url, 
+              is_file: true, 
+              file_name: file.name 
+            };
+            newBlock.data = { ...newBlock.data, links: newLinks };
+            setEditingBlock({ ...editingBlock, block: newBlock });
+          }
+        }
       }
     } catch (e) {
       console.error(e);
       alert("Błąd wgrywania pliku.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveFile = (idx: number) => {
+    if (!editingBlock) return;
+    const newBlock = { ...editingBlock.block };
+    if (newBlock.data.links) {
+      const newLinks = [...newBlock.data.links];
+      newLinks[idx] = { 
+        ...newLinks[idx], 
+        url: "", 
+        is_file: false, 
+        file_name: undefined 
+      };
+      newBlock.data = { ...newBlock.data, links: newLinks };
+      setEditingBlock({ ...editingBlock, block: newBlock });
     }
   };
 
@@ -303,7 +337,7 @@ const AdminFooterForm: React.FC = () => {
     setEditingBlock({ ...editingBlock, block: newBlock });
   };
 
-  const updateLink = (idx: number, field: keyof FooterLink, value: string) => {
+  const updateLink = (idx: number, field: keyof FooterLink, value: any) => {
     if (!editingBlock) return;
     const newBlock = { ...editingBlock.block };
     if (newBlock.data.links) {
@@ -664,15 +698,33 @@ const AdminFooterForm: React.FC = () => {
                           />
                         </div>
                         <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={link.url}
-                            onChange={(e) =>
-                              updateLink(idx, "url", e.target.value)
-                            }
-                            placeholder="URL (/strona lub https://)"
-                            className="flex-1 border rounded p-1 text-sm"
-                          />
+                          <div className="flex-1 space-y-2">
+                            <input
+                              type="text"
+                              value={link.url}
+                              onChange={(e) =>
+                                updateLink(idx, "url", e.target.value)
+                              }
+                              disabled={link.is_file}
+                              placeholder="URL (/strona lub https://)"
+                              className={`w-full border rounded p-1 text-sm ${link.is_file ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                            />
+                            {link.is_file && (
+                              <div className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded px-2 py-1">
+                                <span className="text-xs text-blue-700 truncate flex items-center gap-1">
+                                  <FileText size={12} />
+                                  {link.file_name || "Wgrany plik"}
+                                </span>
+                                <button 
+                                  onClick={() => handleRemoveFile(idx)}
+                                  className="text-blue-600 hover:text-blue-800 p-0.5"
+                                  title="Usuń plik i odblokuj URL"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2 w-1/3">
                             <button
                                 onClick={() => {
@@ -702,7 +754,7 @@ const AdminFooterForm: React.FC = () => {
                                 />
                                 <label 
                                     htmlFor={`file-upload-${idx}`}
-                                    className="cursor-pointer p-1.5 border rounded hover:bg-gray-100 text-gray-600 block"
+                                    className={`cursor-pointer p-1.5 border rounded hover:bg-gray-100 text-gray-600 block ${link.is_file ? 'opacity-50 pointer-events-none' : ''}`}
                                     title="Wgraj plik do pobrania i ustaw jako URL"
                                 >
                                     <Plus size={14} />
