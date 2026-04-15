@@ -18,6 +18,7 @@ import {
   Edit,
   X,
   GripVertical,
+  FileText,
 } from "lucide-react";
 import ConfirmationModal from "./ConfirmationModal";
 import DynamicIcon from "./DynamicIcon";
@@ -77,14 +78,51 @@ const AdminFooterForm: React.FC = () => {
       const finalColumns =
         settings.columns?.slice(0, settings.columns_count) || [];
 
-      const data = {
-        columns_count: settings.columns_count,
-        columns: finalColumns,
-      };
-
       if (settings.id) {
-        await pb.collection("footer_settings").update(settings.id, data);
+        // Collect used files
+        const usedFiles: string[] = [];
+        finalColumns.forEach(col => {
+          col.blocks.forEach(block => {
+            if (block.type === "links" && block.data.links) {
+              block.data.links.forEach(link => {
+                if (link.is_file && link.url && link.url.includes("/api/files/")) {
+                  const parts = link.url.split("/");
+                  const filename = parts[parts.length - 1].split("?")[0].split("#")[0];
+                  if (filename) usedFiles.push(decodeURIComponent(filename));
+                }
+                if (link.icon && link.icon.includes("/api/files/")) {
+                  const parts = link.icon.split("/");
+                  const filename = parts[parts.length - 1].split("?")[0].split("#")[0];
+                  if (filename) usedFiles.push(decodeURIComponent(filename));
+                }
+              });
+            }
+          });
+        });
+
+        // Determine orphaned files to delete
+        const existingRecord = await pb.collection("footer_settings").getOne(settings.id);
+        const existingFiles: string[] = existingRecord.files || [];
+        const orphanedFiles = existingFiles.filter(f => !usedFiles.includes(f));
+
+        if (orphanedFiles.length > 0) {
+          const formData = new FormData();
+          formData.append("columns_count", settings.columns_count.toString());
+          formData.append("columns", JSON.stringify(finalColumns));
+          orphanedFiles.forEach(f => formData.append("files-", f));
+          await pb.collection("footer_settings").update(settings.id, formData);
+        } else {
+          const data = {
+            columns_count: settings.columns_count,
+            columns: finalColumns,
+          };
+          await pb.collection("footer_settings").update(settings.id, data);
+        }
       } else {
+        const data = {
+          columns_count: settings.columns_count,
+          columns: finalColumns,
+        };
         await pb.collection("footer_settings").create(data);
       }
 
@@ -241,7 +279,7 @@ const AdminFooterForm: React.FC = () => {
     }
     try {
       const formData = new FormData();
-      formData.append("files", file);
+      formData.append("files+", file);
       const record = await pb
         .collection("footer_settings")
         .update(settings.id, formData);
@@ -267,9 +305,9 @@ const AdminFooterForm: React.FC = () => {
       return;
     }
     try {
-      setIsLoading(true);
+      setLoading(true);
       const formData = new FormData();
-      formData.append("files", file);
+      formData.append("files+", file);
       const record = await pb
         .collection("footer_settings")
         .update(settings.id, formData);
@@ -300,7 +338,7 @@ const AdminFooterForm: React.FC = () => {
       console.error(e);
       alert("Błąd wgrywania pliku.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -698,7 +736,7 @@ const AdminFooterForm: React.FC = () => {
                           />
                         </div>
                         <div className="flex gap-2">
-                          <div className="flex-1 space-y-2">
+                          <div className="flex-1 min-w-0 space-y-2">
                             <input
                               type="text"
                               value={link.url}
@@ -710,14 +748,16 @@ const AdminFooterForm: React.FC = () => {
                               className={`w-full border rounded p-1 text-sm ${link.is_file ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                             />
                             {link.is_file && (
-                              <div className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded px-2 py-1">
-                                <span className="text-xs text-blue-700 truncate flex items-center gap-1">
-                                  <FileText size={12} />
-                                  {link.file_name || "Wgrany plik"}
-                                </span>
+                              <div className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded px-2 py-1 overflow-hidden">
+                                <div className="flex items-center gap-1 min-w-0 flex-1 mr-2 text-blue-700">
+                                  <FileText size={12} className="flex-shrink-0" />
+                                  <span className="text-xs truncate">
+                                    {link.file_name || "Wgrany plik"}
+                                  </span>
+                                </div>
                                 <button 
                                   onClick={() => handleRemoveFile(idx)}
-                                  className="text-blue-600 hover:text-blue-800 p-0.5"
+                                  className="text-blue-600 hover:text-blue-800 p-0.5 flex-shrink-0"
                                   title="Usuń plik i odblokuj URL"
                                 >
                                   <X size={14} />

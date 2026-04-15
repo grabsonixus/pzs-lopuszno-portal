@@ -4,6 +4,7 @@ import { pb } from "../services/pocketbase";
 import { Subpage, getFileUrl } from "../lib/types";
 import SunEditor from "suneditor-react";
 import SunEditorCore from "suneditor/src/lib/core";
+import plugins from "suneditor/src/plugins";
 import "suneditor/dist/css/suneditor.min.css";
 import pl from "suneditor/src/lang/pl";
 import ConfirmationModal from "./ConfirmationModal";
@@ -645,12 +646,13 @@ const AdminSubpageForm: React.FC = () => {
                 stickyToolbar: 84,
                 height: "400px",
                 plugins: [
+                  ...(Object.values(plugins) as any[]),
                   {
                     name: 'insertFilePlugin',
                     display: 'command',
                     title: 'Wstaw załącznik',
                     buttonClass: '',
-                    innerHTML: '<div style="display:flex;align-items:center;justify-content:center;background:#4f46e5;color:white;border-radius:4px;padding:2px;margin:2px;border:1px solid #3730a3;" title="Wstaw załącznik"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div>',
+                    innerHTML: '<div style="display:flex;align-items:center;justify-content:center;background:rgba(79, 70, 229, 0.15);color:#4f46e5;border-radius:4px;width:24px;height:24px;margin:auto;" title="Wstaw załącznik"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg></div>',
                     add: function (core: any, targetElement: any) {
                       core.context.insertFilePlugin = { targetButton: targetElement };
                     },

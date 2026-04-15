@@ -20,7 +20,7 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      await pb.admins.authWithPassword(email, password);
+      await pb.collection('_superusers').authWithPassword(email, password);
       navigate('/admin/dashboard');
     } catch (err) {
       setError('Nie udało się zalogować. Sprawdź dane i spróbuj ponownie.');
