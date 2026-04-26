@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { pb } from "../services/pocketbase";
 import { NavItem, Subpage } from "../lib/types";
-import { Save, AlertCircle } from "lucide-react";
+import { Save, AlertCircle, X } from "lucide-react";
 import { NavigationSource } from "./admin/navigation/NavigationSource";
 import { SocialMediaManager } from "./admin/navigation/SocialMediaManager";
 import { MenuBuilder, TreeItem } from "./admin/navigation/MenuBuilder";
@@ -296,8 +296,19 @@ const AdminNavigation: React.FC = () => {
   };
 
   const handleSave = async () => {
+      setError("");
       setSaving(true);
+      
       try {
+          // Walidacja limitu 10 elementów na głównym poziomie
+          const topLevelItems = navItems.filter(i => !i.parent_id || i.parent_id === '');
+          if (topLevelItems.length > 10) {
+              setError(`Główny poziom nawigacji może zawierać maksymalnie 10 elementów (obecnie: ${topLevelItems.length}). Proszę usuń nadmiarowe elementy lub przenieś je do podmenu.`);
+              setSaving(false);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              return;
+          }
+
           // Normalize orders before save
           // Group by parent, sort by current order, re-assign indices 0..N
           const grouped = new Map<string, NavItem[]>();
@@ -337,11 +348,13 @@ const AdminNavigation: React.FC = () => {
                   else return pb.collection("navigation_items").update(item.id, data);
               })
           ]);
+          setError(""); // Clear error on success
           alert("Zapisano pomyślnie!");
           fetchData();
-      } catch (error) {
+      } catch (error: any) {
           console.error("Error saving:", error);
-          alert("Błąd zapisu.");
+          setError("Wystąpił błąd podczas zapisywania zmian. Upewnij się, że połączenie z bazą danych jest aktywne.");
+          window.scrollTo({ top: 0, behavior: "smooth" });
       } finally {
           setSaving(false);
       }
@@ -369,15 +382,25 @@ const AdminNavigation: React.FC = () => {
         </div>
 
         {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 flex items-start">
-                <AlertCircle className="text-red-500 mr-2" size={24} />
-                <div>
-                    <h3 className="text-red-800 font-medium">Błąd wczytywania</h3>
-                    <p className="text-red-700">{error}</p>
-                    <button onClick={fetchData} className="mt-2 text-red-800 underline hover:text-red-900 text-sm">
-                        Spróbuj ponownie
-                    </button>
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 flex items-start animate-in fade-in slide-in-from-top-4">
+                <AlertCircle className="text-red-500 mt-0.5 mr-3 flex-shrink-0" size={20} />
+                <div className="flex-grow">
+                    <h3 className="text-red-800 font-bold text-sm uppercase tracking-wider mb-1">
+                        {error.includes("wczytywania") ? "Błąd wczytywania" : "Błąd walidacji / zapisu"}
+                    </h3>
+                    <p className="text-red-700 text-sm leading-relaxed">{error}</p>
+                    {error.includes("wczytywania") && (
+                        <button onClick={fetchData} className="mt-3 text-red-800 font-semibold underline hover:text-red-900 text-xs flex items-center gap-1">
+                            Spróbuj ponownie
+                        </button>
+                    )}
                 </div>
+                <button 
+                    onClick={() => setError("")}
+                    className="text-red-400 hover:text-red-600 transition-colors ml-2"
+                >
+                    <X size={18} />
+                </button>
             </div>
         )}
 

@@ -86,39 +86,39 @@ const Navbar: React.FC = () => {
 
   return (
      <nav className="bg-white shadow-md sticky top-0 z-50 font-sans relative">
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
+      <div className="w-full px-4 xl:px-12 relative z-10 font-sans">
+        <div className="flex flex-wrap items-center min-h-[6rem] py-2 gap-x-8 gap-y-2">
+          {/* Logo i Nazwa */}
+          <Link to="/" className="flex items-center gap-4 group flex-shrink-0 py-2">
             <img
               src={logoUrl}
               alt="Logo"
-              className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
             <div className="hidden md:block">
-              <h1 className="font-serif font-bold text-lg text-school-primary leading-tight">
+              <h1 className="font-serif font-bold text-base text-school-primary leading-tight">
                 {navTitle}
               </h1>
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest">
+              <p className="text-[9px] text-gray-500 uppercase tracking-widest">
                 {navSubtitle}
               </p>
             </div>
             <div className="md:hidden">
-              <span className="font-serif font-bold text-lg text-school-primary">
+              <span className="font-serif font-bold text-base text-school-primary">
                 {navTitleMobile}
               </span>
             </div>
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center space-x-2">
+          {/* Desktop Menu - Zawijane gdy za długie */}
+          <div className="hidden lg:flex flex-wrap items-center gap-x-1 gap-y-1 flex-grow">
             {navLinks.map((link) => {
               if (link.is_highlight) {
                 return (
                   <Link
                     key={link.id}
                     to={link.href}
-                    className="bg-school-accent text-school-primary px-6 py-2.5 rounded-md font-bold hover:brightness-110 transition-all shadow-sm ml-4 inline-block"
+                    className="bg-school-accent text-school-primary px-5 py-2 rounded-md font-bold hover:brightness-110 transition-all shadow-sm ml-2 inline-block whitespace-nowrap text-sm"
                   >
                     {link.name}
                   </Link>
@@ -131,20 +131,20 @@ const Navbar: React.FC = () => {
                 link.dropdown.length > 0
               ) {
                 return (
-                  <div key={link.id} className="relative group">
+                  <div key={link.id} className="relative group whitespace-nowrap">
                     {link.is_external ? (
                       <a
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-gray-700 hover:text-school-primary font-medium py-2 px-4 transition-colors"
+                        className="flex items-center gap-1 text-gray-700 hover:text-school-primary font-medium py-2 px-3 transition-colors text-sm"
                       >
                         {link.name} <ChevronDown size={14} />
                       </a>
                     ) : (
                       <Link
                         to={link.href}
-                        className="flex items-center gap-1 text-gray-700 hover:text-school-primary font-medium py-2 px-4 transition-colors"
+                        className="flex items-center gap-1 text-gray-700 hover:text-school-primary font-medium py-2 px-3 transition-colors text-sm"
                       >
                         {link.name} <ChevronDown size={14} />
                       </Link>
@@ -180,7 +180,7 @@ const Navbar: React.FC = () => {
                 <Link
                   key={link.id}
                   to={link.href}
-                  className="text-gray-700 hover:text-school-primary font-medium py-2 px-4 transition-colors"
+                  className="text-gray-700 hover:text-school-primary font-medium py-2 px-3 transition-colors whitespace-nowrap text-sm"
                 >
                   {link.name}
                 </Link>
@@ -188,19 +188,21 @@ const Navbar: React.FC = () => {
             })}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="lg:hidden text-school-primary p-2 flex-shrink-0"
-          >
-            {isOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
+          {/* Social Icons - Połączone z layoutem flexbox, zapobiega nakładaniu */}
+          <div className="hidden 2xl:flex items-center ml-auto flex-shrink-0 pl-6 border-l border-gray-100 min-h-[40px]">
+             <SocialIcons />
+          </div>
+
+          {/* Przycisk mobilny */}
+          <div className="ml-auto lg:hidden">
+            <button
+              onClick={toggleMenu}
+              className="text-school-primary p-2 flex-shrink-0"
+            >
+              {isOpen ? <X size={28} /> : <Menu size={28} />}
+            </button>
+          </div>
         </div>
-      </div>
-      
-      {/* Social Icons - Absolutely Positioned to Right Screen Edge (Outside Container) */}
-      <div className="hidden 2xl:flex absolute top-1/2 -translate-y-1/2 right-8 z-20">
-         <SocialIcons />
       </div>
 
       {/* Mobile Menu Overlay */}

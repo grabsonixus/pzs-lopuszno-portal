@@ -154,8 +154,18 @@ const AdminSubpageForm: React.FC = () => {
   // --- LOGIKA PLIKÓW ---
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(""); // Czyścimy błędy przy nowym wyborze
     if (e.target.files) {
       const filesArray = Array.from(e.target.files) as File[];
+      
+      // Sprawdź rozmiar każdego pliku (limit 100MB)
+      const oversized = filesArray.filter(f => f.size > MAX_FILE_SIZE);
+      if (oversized.length > 0) {
+        setError(`Plik "${oversized[0].name}" jest za duży. Maksymalny rozmiar to 100MB.`);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
       setNewFiles((prev) => [...prev, ...filesArray]);
 
       if (docInputRef.current) {
@@ -220,8 +230,35 @@ const AdminSubpageForm: React.FC = () => {
     setError("");
     setSuccess("");
 
+    if (!subpage.title?.trim()) {
+      setError("Tytuł podstrony nie może być pusty.");
+      setIsSaving(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     const formData = new FormData();
     
+    // Sprawdzanie unikalności tytułu (aby uniknąć duplikatów i konfliktów slugów)
+    try {
+      const filter = id 
+        ? `title = "${subpage.title}" && id != "${id}"` 
+        : `title = "${subpage.title}"`;
+      
+      const existingRecord = await pb.collection("subpages").getList(1, 1, {
+        filter: filter,
+      });
+
+      if (existingRecord.totalItems > 0) {
+        setError(`Podstrona o tytule "${subpage.title}" już istnieje. Każda podstrona musi mieć unikalną nazwę.`);
+        setIsSaving(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+    } catch (err) {
+      console.error("Błąd podczas sprawdzania unikalności tytułu:", err);
+    }
+
     // Zapewniamy unikalność sluga przed zapisem
     const uniqueSlug = await ensureUniqueSlug(
       "subpages", 
@@ -231,7 +268,9 @@ const AdminSubpageForm: React.FC = () => {
 
     formData.append("title", subpage.title || "");
     formData.append("slug", uniqueSlug);
-    formData.append("content", subpage.content || "");
+    // PocketBase może wymagać niepustego pola content, więc jeśli jest puste, wysyłamy spację
+    // Pozwala to na zapisywanie podstron, które mają tylko pliki lub galerię.
+    formData.append("content", subpage.content || " ");
 
     // Obsługa plików (dokumentów) - tylko NOWE pliki i USUNIĘTE
     console.log("Files to delete:", filesToDelete);
@@ -280,6 +319,17 @@ const AdminSubpageForm: React.FC = () => {
       return;
     }
 
+    // Walidacja czy jest jakakolwiek treść (tekst, pliki lub galeria)
+    const hasTextContent = subpage.content && subpage.content.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim().length > 0;
+    const hasFiles = (subpage.files && subpage.files.length > 0) || newFiles.length > 0;
+    const hasGallery = (subpage.gallery && subpage.gallery.length > 0) || newGalleryFiles.length > 0;
+
+    if (!hasTextContent && !hasFiles && !hasGallery) {
+      setError(id ? "Nie udało się zaktualizować podstrony, ponieważ nie posiada ona żadnej treści (tekstu, plików ani galerii)." : "Nie udało się dodać podstrony, ponieważ nie posiada ona żadnej treści (tekstu, plików ani galerii).");
+      setIsSaving(false);
+      return;
+    }
+
     setIsUploading(true);
     setUploadProgress(0);
 
@@ -293,19 +343,24 @@ const AdminSubpageForm: React.FC = () => {
       });
     }, 500);
 
+
     try {
       if (id) {
         const updatedRecord = await pb.collection("subpages").update<Subpage>(id, formData);
         clearInterval(progressInterval);
         setUploadProgress(100);
+        
+        // Aktualizacja stanu lokalnego danymi z serwera
         setSubpage(prev => ({
           ...prev,
+          ...updatedRecord,
           files: (updatedRecord as any)[fileFieldName] || [],
           gallery: updatedRecord.gallery || []
         }));
-        setNewFiles([]); // Wyczyść nowe pliki
+        
+        setNewFiles([]); 
         setNewGalleryFiles([]);
-        setFilesToDelete([]); // Wyczyść do usunięcia
+        setFilesToDelete([]); 
         setGalleryToDelete([]);
         setSuccess("Podstrona została zaktualizowana pomyślnie.");
         setIsSuccess(true);
@@ -316,15 +371,44 @@ const AdminSubpageForm: React.FC = () => {
         setUploadProgress(100);
         setSubpage(newRecord);
         setNewFiles([]);
+        setNewGalleryFiles([]);
         setFilesToDelete([]);
+        setGalleryToDelete([]);
         setSuccess("Podstrona została utworzona pomyślnie.");
         setIsSuccess(true);
         navigate(`/admin/subpages/edit/${newRecord.id}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       clearInterval(progressInterval);
       console.error("Error saving subpage:", err);
-      setError("Nie udało się zapisać podstrony.");
+
+      let errorMessage = id ? "Nie udało się zaktualizować podstrony." : "Nie udało się utworzyć podstrony.";
+
+      // Obsługa specyficznych błędów PocketBase
+      if (err.status === 400 && err.data?.data) {
+        const fieldErrors = err.data.data;
+        const details = Object.entries(fieldErrors)
+          .map(([field, data]: [string, any]) => {
+            let label = field;
+            if (field === 'title') label = 'Tytuł';
+            if (field === 'slug') label = 'Adres (slug)';
+            if (field === 'content') label = 'Treść';
+            return `${label}: ${data.message}`;
+          })
+          .join(", ");
+        errorMessage = `Błąd walidacji danych: ${details}`;
+      } else if (err.status === 401 || err.status === 403) {
+        errorMessage = "Twoja sesja logowania wygasła lub nie masz uprawnień do tej operacji. Zaloguj się ponownie.";
+      } else if (err.status === 0) {
+        errorMessage = "Błąd połączenia z serwerem. Sprawdź połączenie internetowe lub spróbuj później.";
+      } else if (err.originalError?.message === "Failed to fetch") {
+        errorMessage = "Serwer jest nieosiągalny. Może być aktualizowany lub wyłączony.";
+      } else if (err.message) {
+        errorMessage = `Wystąpił nieoczekiwany błąd: ${err.message}`;
+      }
+
+      setError(errorMessage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setIsSaving(false);
       setIsUploading(false);
@@ -378,6 +462,16 @@ const AdminSubpageForm: React.FC = () => {
         <h1 className="text-2xl font-bold mb-6">
           {id ? "Edytuj podstronę" : "Dodaj nową podstronę"}
         </h1>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 shadow-sm rounded-r-md animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex items-center gap-3">
+              <X className="flex-shrink-0 text-red-500" size={20} />
+              <p className="font-medium text-sm sm:text-base">{error}</p>
+            </div>
+          </div>
+        )}
+
         <form
           id="subpage-form"
           onSubmit={handleSubmit}
@@ -691,7 +785,6 @@ const AdminSubpageForm: React.FC = () => {
             />
           </div>
 
-          {error && <p className="text-red-500">{error}</p>}
         </form>
       </main>
 
