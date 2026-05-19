@@ -1,6 +1,6 @@
 import PocketBase from 'pocketbase';
 
-const POCKETBASE_URL = "https://api.zsp5lopuszno.pl/";
+const POCKETBASE_URL = "https://zsp5lopuszno.pl/api";
 const ADMIN_EMAIL = "pzs@pzslopuszno.edu.pl";
 const ADMIN_PASSWORD = "hO^k!rBRmqP4AgS$";
 

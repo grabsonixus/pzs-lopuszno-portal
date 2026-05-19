@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Configuration
-const POCKETBASE_URL = process.env.POCKETBASE_URL || "https://api.zsp5lopuszno.pl/"; // Adjust if needed or use .env
+const POCKETBASE_URL = process.env.POCKETBASE_URL || "https://zsp5lopuszno.pl/api"; // Adjust if needed or use .env
 const WP_API_URL = 'https://zsp5lopuszno.pl/wp-json/wp/v2/posts';
 const PER_PAGE = 20;
 

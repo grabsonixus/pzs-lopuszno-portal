@@ -1,7 +1,7 @@
 import PocketBase from 'pocketbase';
 
 // Hardcoded configuration from .env.local for this migration script
-const POCKETBASE_URL = "https://api.zsp5lopuszno.pl/";
+const POCKETBASE_URL = "https://zsp5lopuszno.pl/api";
 const ADMIN_EMAIL = "admin@example.com";
 const ADMIN_PASSWORD = "password123";
 

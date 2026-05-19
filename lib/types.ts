@@ -199,7 +199,7 @@ export const getImageUrl = (
   // Próba odczytu z wielu źródeł środowiskowych (Vite + fallback)
   // @ts-ignore
   const baseUrl = (import.meta.env?.VITE_PUBLIC_POCKETBASE_URL) || 
-                  "https://api.zsp5lopuszno.pl/";
+                  "https://zsp5lopuszno.pl/api";
                   
   const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
   
