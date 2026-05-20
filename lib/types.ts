@@ -217,3 +217,31 @@ export interface SystemUpdate extends PocketBaseRecord {
   description: string;
   date: string;
 }
+
+export type FormFieldType = "text" | "email" | "textarea" | "select" | "radio" | "checkbox" | "static_text";
+
+export interface FormField {
+  id: string;
+  type: FormFieldType;
+  label: string;
+  required: boolean;
+  placeholder?: string;
+  options?: string[]; // for select, radio, checkbox
+}
+
+export interface CustomForm extends PocketBaseRecord {
+  title: string;
+  slug: string;
+  description?: string;
+  target_email: string;
+  submit_button_text: string;
+  success_message: string;
+  fields: FormField[];
+  is_active: boolean;
+}
+
+export interface FormSubmission extends PocketBaseRecord {
+  form_id: string;
+  data: Record<string, any>;
+  is_read: boolean;
+}

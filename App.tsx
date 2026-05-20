@@ -20,7 +20,11 @@ const AdminSubpageForm = lazy(() => import("./components/AdminSubpageForm"));
 const AdminHomeForm = lazy(() => import("./components/AdminHomeForm"));
 const AdminSettingsForm = lazy(() => import("./components/AdminSettingsForm"));
 const AdminCategories = lazy(() => import("./components/AdminCategories"));
-const AdminFooterForm = lazy(() => import("./components/AdminFooterForm")); // NOWY IMPORT
+const AdminFooterForm = lazy(() => import("./components/AdminFooterForm"));
+const AdminForms = lazy(() => import("./components/AdminForms"));
+const AdminFormEditor = lazy(() => import("./components/AdminFormEditor"));
+const AdminFormSubmissions = lazy(() => import("./components/AdminFormSubmissions"));
+const FormPage = lazy(() => import("./components/FormPage"));
 
 const App: React.FC = () => {
   return (
@@ -37,6 +41,7 @@ const App: React.FC = () => {
               <Route path="/aktualnosci/kategoria/:categorySlug" element={<NewsList />} />
               <Route path="/aktualnosci/:slug" element={<NewsDetail />} />
               <Route path="/p/:slug" element={<SubpageDetail />} />
+              <Route path="/formularz/:slug" element={<FormPage />} />
               <Route path="/admin" element={<AdminLogin />} />
               <Route path="/admin" element={<PrivateRoute />}>
                 <Route path="dashboard" element={<AdminDashboard />} />
@@ -54,8 +59,11 @@ const App: React.FC = () => {
                 <Route path="settings" element={<AdminSettingsForm />} />
                 <Route path="settings" element={<AdminSettingsForm />} />
                 <Route path="categories" element={<AdminCategories />} />
-                <Route path="footer" element={<AdminFooterForm />} />{" "}
-                {/* NOWA TRASA */}
+                <Route path="footer" element={<AdminFooterForm />} />
+                <Route path="forms" element={<AdminForms />} />
+                <Route path="forms/new" element={<AdminFormEditor />} />
+                <Route path="forms/edit/:id" element={<AdminFormEditor />} />
+                <Route path="forms/:id/submissions" element={<AdminFormSubmissions />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

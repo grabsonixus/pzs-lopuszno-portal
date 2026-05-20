@@ -10,7 +10,8 @@ import {
   FileIcon,
   GitCommit,
   Clock,
-  AlertCircle
+  AlertCircle,
+  MessageSquare
 } from "lucide-react";
 import { pb } from "../services/pocketbase";
 import { SystemUpdate } from "../lib/types";
@@ -121,6 +122,19 @@ const AdminDashboard: React.FC = () => {
                 <h2 className="text-lg font-bold mb-1">Podstrony</h2>
                 <p className="text-gray-500 text-xs">
                     Statyczne strony info.
+                </p>
+                </Link>
+
+                <Link
+                to="/admin/forms"
+                className="p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all hover:-translate-y-1 group"
+                >
+                <div className="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                    <MessageSquare size={20} />
+                </div>
+                <h2 className="text-lg font-bold mb-1">Formularze</h2>
+                <p className="text-gray-500 text-xs">
+                    Kontakt i rekrutacja.
                 </p>
                 </Link>
 

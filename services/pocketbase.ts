@@ -3,9 +3,10 @@ import PocketBase from "pocketbase";
 
 // Unified URL to match the types definition and ensure connection
 const POCKETBASE_URL =
-  process.env.PUBLIC_POCKETBASE_URL || "https://zsp5lopuszno.pl/api";
+  import.meta.env?.VITE_PUBLIC_POCKETBASE_URL || "https://zsp5lopuszno.pl/api";
 
 export const pb = new PocketBase(POCKETBASE_URL);
+pb.autoCancellation(false);
 
 // Helper to check connection status
 export const checkHealth = async (): Promise<boolean> => {
