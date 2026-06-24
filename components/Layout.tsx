@@ -6,6 +6,8 @@ import AccessibilityWidget from "./AccessibilityWidget";
 import { pb } from "../services/pocketbase";
 import { AdminEditProvider } from "../lib/AdminEditContext";
 import { ThemeManager, ThemeContext } from "./ThemeManager"; // Nowy import
+import { checkFileExists } from "../lib/types";
+import Toast from "./Toast";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,6 +16,7 @@ interface LayoutProps {
 // Wrapper wewnętrzny, który ma dostęp do ThemeContext
 const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
   const settings = useContext(ThemeContext);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const checkIsAdmin = () => {
     const model = pb.authStore.model;
@@ -31,6 +34,61 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
       setIsAdmin(checkIsAdmin());
     });
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    let checkingFile = false;
+
+    const handleGlobalClick = async (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest("a");
+      if (anchor) {
+        let href = anchor.getAttribute("href");
+        if (href && href.includes("/api/files/")) {
+          // Detect if double /api/api/ prefix is required based on baseUrl
+          const baseUrl = (import.meta.env?.VITE_PUBLIC_POCKETBASE_URL) || "https://zsp5lopuszno.pl/api";
+          const needsDoubleApi = baseUrl.endsWith("/api") || baseUrl.endsWith("/api/");
+
+          if (needsDoubleApi && !href.includes("/api/api/files/")) {
+            href = href.replace("/api/files/", "/api/api/files/");
+            anchor.setAttribute("href", href);
+          }
+
+          // If already checking, prevent double trigger
+          if (checkingFile) {
+            e.preventDefault();
+            return;
+          }
+
+          e.preventDefault();
+          checkingFile = true;
+          const originalCursor = document.body.style.cursor;
+          document.body.style.cursor = "wait";
+
+          try {
+            const exists = await checkFileExists(href);
+            if (exists) {
+              const targetAttr = anchor.getAttribute("target") || "_blank";
+              window.open(href, targetAttr, "noopener,noreferrer");
+            } else {
+              setToast({ message: "Wybrany plik nie istnieje na serwerze.", type: "error" });
+            }
+          } catch (err) {
+            // Fallback: try to open in case of network anomalies
+            const targetAttr = anchor.getAttribute("target") || "_blank";
+            window.open(href, targetAttr, "noopener,noreferrer");
+          } finally {
+            document.body.style.cursor = originalCursor;
+            checkingFile = false;
+          }
+        }
+      }
+    };
+
+    document.addEventListener("click", handleGlobalClick);
+    return () => {
+      document.removeEventListener("click", handleGlobalClick);
+    };
   }, []);
 
   return (
@@ -57,6 +115,14 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
       </main>
 
       <Footer />
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+          duration={4000}
+        />
+      )}
     </div>
   );
 };

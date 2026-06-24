@@ -212,6 +212,25 @@ export const getImageUrl = (
 
 export const getFileUrl = getImageUrl;
 
+export const checkFileExists = async (url: string): Promise<boolean> => {
+  if (!url) return false;
+  try {
+    const response = await fetch(url, { method: "HEAD" });
+    if (response.status === 404) return false;
+    return true;
+  } catch (error) {
+    // If HEAD request fails due to CORS or network policies, fallback to GET to check status code.
+    try {
+      const response = await fetch(url, { method: "GET" });
+      if (response.status === 404) return false;
+      return true;
+    } catch (e) {
+      // In case of a total fetch failure (e.g., CORS mismatch in dev), assume true to allow browser attempt.
+      return true;
+    }
+  }
+};
+
 export interface SystemUpdate extends PocketBaseRecord {
   version: string;
   description: string;
